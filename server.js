@@ -1,7 +1,8 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -9,29 +10,44 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Banco SQLite (funciona 100% no Render)
-let db;
-if (process.env.NODE_ENV === 'production') {
-  db = new sqlite3.Database('./database.db');
-} else {
-  db = new sqlite3.Database('./database.db');
+// better-sqlite3 com path fixo para Render
+const dbPath = process.env.NODE_ENV === 'production' ? '/opt/render/project/src/database.db' : './database.db';
+
+// Criar banco se não existir
+if (!fs.existsSync(dbPath)) {
+  fs.writeFileSync(dbPath, '');
 }
 
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome TEXT, email TEXT UNIQUE, senha TEXT, tipo TEXT
-  )`);
-  db.run(`CREATE TABLE IF NOT EXISTS livros (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    titulo TEXT, autor TEXT, ano INTEGER, disponivel INTEGER DEFAULT 1
-  )`);
-  db.run(`CREATE TABLE IF NOT EXISTS emprestimos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario_id INTEGER, livro_id INTEGER, data_emprestimo TEXT
-  )`);
-  console.log('Tabelas criadas!');
-});
+const db = new Database(dbPath);
+
+// Criar tabelas
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT,
+      email TEXT UNIQUE,
+      senha TEXT,
+      tipo TEXT
+    );
+    CREATE TABLE IF NOT EXISTS livros (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      titulo TEXT,
+      autor TEXT,
+      ano INTEGER,
+      disponivel INTEGER DEFAULT 1
+    );
+    CREATE TABLE IF NOT EXISTS emprestimos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER,
+      livro_id INTEGER,
+      data_emprestimo TEXT
+    )
+  `);
+  console.log('Tabelas criadas com sucesso!');
+} catch (err) {
+  console.error('Erro ao criar tabelas:', err);
+}
 
 // Auth simples
 const auth = (req, res, next) => {
@@ -51,110 +67,97 @@ app.post('/login', (req, res) => {
 
 // USUÁRIOS
 app.get('/usuarios', auth, (req, res) => {
-  db.all('SELECT * FROM usuarios', (err, rows) => {
-    res.render('usuarios/listar', { usuarios: rows || [] });
-  });
+  const usuarios = db.prepare('SELECT * FROM usuarios').all();
+  res.render('usuarios/listar', { usuarios });
 });
 
 app.get('/usuarios/cadastrar', auth, (req, res) => res.render('usuarios/cadastrar'));
 app.post('/usuarios/cadastrar', auth, (req, res) => {
   const { nome, email, senha, tipo } = req.body;
-  db.run('INSERT INTO usuarios (nome, email, senha, tipo) VALUES (?, ?, ?, ?)',
-    [nome, email, senha, tipo], () => res.redirect('/usuarios?sessao=logado'));
+  try {
+    db.prepare('INSERT INTO usuarios (nome, email, senha, tipo) VALUES (?, ?, ?, ?)').run(nome, email, senha, tipo);
+    res.redirect('/usuarios?sessao=logado');
+  } catch (err) {
+    res.send('Erro ao cadastrar: ' + err.message);
+  }
 });
 
 app.get('/usuarios/editar/:id', auth, (req, res) => {
-  db.get('SELECT * FROM usuarios WHERE id = ?', [req.params.id], (err, row) => {
-    res.render('usuarios/editar', { usuario: row });
-  });
+  const usuario = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(req.params.id);
+  res.render('usuarios/editar', { usuario });
 });
 
 app.post('/usuarios/editar/:id', auth, (req, res) => {
   const { nome, email, senha, tipo } = req.body;
   if (senha) {
-    db.run('UPDATE usuarios SET nome=?, email=?, senha=?, tipo=? WHERE id=?',
-      [nome, email, senha, tipo, req.params.id], () => res.redirect('/usuarios?sessao=logado'));
+    db.prepare('UPDATE usuarios SET nome = ?, email = ?, senha = ?, tipo = ? WHERE id = ?').run(nome, email, senha, tipo, req.params.id);
   } else {
-    db.run('UPDATE usuarios SET nome=?, email=?, tipo=? WHERE id=?',
-      [nome, email, tipo, req.params.id], () => res.redirect('/usuarios?sessao=logado'));
+    db.prepare('UPDATE usuarios SET nome = ?, email = ?, tipo = ? WHERE id = ?').run(nome, email, tipo, req.params.id);
   }
+  res.redirect('/usuarios?sessao=logado');
 });
 
 app.get('/usuarios/excluir/:id', auth, (req, res) => {
-  db.run('DELETE FROM usuarios WHERE id = ?', [req.params.id], () => {
-    res.redirect('/usuarios?sessao=logado');
-  });
+  db.prepare('DELETE FROM usuarios WHERE id = ?').run(req.params.id);
+  res.redirect('/usuarios?sessao=logado');
 });
 
 // LIVROS
 app.get('/livros', auth, (req, res) => {
-  db.all('SELECT * FROM livros', (err, rows) => {
-    res.render('livros/listar', { livros: rows || [] });
-  });
+  const livros = db.prepare('SELECT * FROM livros').all();
+  res.render('livros/listar', { livros });
 });
 
 app.get('/livros/cadastrar', auth, (req, res) => res.render('livros/cadastrar'));
 app.post('/livros/cadastrar', auth, (req, res) => {
   const { titulo, autor, ano } = req.body;
-  db.run('INSERT INTO livros (titulo, autor, ano, disponivel) VALUES (?, ?, ?, 1)',
-    [titulo, autor, ano], () => res.redirect('/livros?sessao=logado'));
+  db.prepare('INSERT INTO livros (titulo, autor, ano, disponivel) VALUES (?, ?, ?, 1)').run(titulo, autor, ano);
+  res.redirect('/livros?sessao=logado');
 });
 
 app.get('/livros/editar/:id', auth, (req, res) => {
-  db.get('SELECT * FROM livros WHERE id = ?', [req.params.id], (err, row) => {
-    res.render('livros/editar', { livro: row });
-  });
+  const livro = db.prepare('SELECT * FROM livros WHERE id = ?').get(req.params.id);
+  res.render('livros/editar', { livro });
 });
 
 app.post('/livros/editar/:id', auth, (req, res) => {
   const { titulo, autor, ano } = req.body;
-  db.run('UPDATE livros SET titulo=?, autor=?, ano=? WHERE id=?',
-    [titulo, autor, ano, req.params.id], () => res.redirect('/livros?sessao=logado'));
+  db.prepare('UPDATE livros SET titulo = ?, autor = ?, ano = ? WHERE id = ?').run(titulo, autor, ano, req.params.id);
+  res.redirect('/livros?sessao=logado');
 });
 
 app.get('/livros/excluir/:id', auth, (req, res) => {
-  db.run('DELETE FROM livros WHERE id = ?', [req.params.id], () => {
-    res.redirect('/livros?sessao=logado');
-  });
+  db.prepare('DELETE FROM livros WHERE id = ?').run(req.params.id);
+  res.redirect('/livros?sessao=logado');
 });
 
 // EMPRÉSTIMOS
 app.get('/emprestimos', auth, (req, res) => {
-  db.all(`
+  const emprestimos = db.prepare(`
     SELECT e.id, u.nome as usuario, l.titulo as livro, e.data_emprestimo
     FROM emprestimos e
     JOIN usuarios u ON e.usuario_id = u.id
     JOIN livros l ON e.livro_id = l.id
-  `, (err, emprestimos) => {
-    db.all('SELECT id, nome FROM usuarios', (err, usuarios) => {
-      db.all('SELECT id, titulo FROM livros WHERE disponivel = 1', (err, livros) => {
-        res.render('emprestimos/listar', { 
-          emprestimos: emprestimos || [], 
-          usuarios: usuarios || [], 
-          livros: livros || [] 
-        });
-      });
-    });
-  });
+  `).all();
+  const usuarios = db.prepare('SELECT id, nome FROM usuarios').all();
+  const livros = db.prepare('SELECT id, titulo FROM livros WHERE disponivel = 1').all();
+  res.render('emprestimos/listar', { emprestimos, usuarios, livros });
 });
 
 app.post('/emprestimos/cadastrar', auth, (req, res) => {
   const { usuario_id, livro_id, data_emprestimo } = req.body;
-  db.run('INSERT INTO emprestimos (usuario_id, livro_id, data_emprestimo) VALUES (?, ?, ?)',
-    [usuario_id, livro_id, data_emprestimo], () => {
-      db.run('UPDATE livros SET disponivel = 0 WHERE id = ?', [livro_id]);
-      res.redirect('/emprestimos?sessao=logado');
-    });
+  db.prepare('INSERT INTO emprestimos (usuario_id, livro_id, data_emprestimo) VALUES (?, ?, ?)').run(usuario_id, livro_id, data_emprestimo);
+  db.prepare('UPDATE livros SET disponivel = 0 WHERE id = ?').run(livro_id);
+  res.redirect('/emprestimos?sessao=logado');
 });
 
 app.get('/emprestimos/devolver/:id', auth, (req, res) => {
-  db.get('SELECT livro_id FROM emprestimos WHERE id = ?', [req.params.id], (err, row) => {
-    if (row) {
-      db.run('DELETE FROM emprestimos WHERE id = ?', [req.params.id]);
-      db.run('UPDATE livros SET disponivel = 1 WHERE id = ?', [row.livro_id]);
-    }
-    res.redirect('/emprestimos?sessao=logado');
-  });
+  const row = db.prepare('SELECT livro_id FROM emprestimos WHERE id = ?').get(req.params.id);
+  if (row) {
+    db.prepare('DELETE FROM emprestimos WHERE id = ?').run(req.params.id);
+    db.prepare('UPDATE livros SET disponivel = 1 WHERE id = ?').run(row.livro_id);
+  }
+  res.redirect('/emprestimos?sessao=logado');
 });
 
 const PORT = process.env.PORT || 3000;
