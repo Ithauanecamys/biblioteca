@@ -15,4 +15,6 @@
     "node": "18.x"
   }
 }
-Adicionar pg para PostgreSQL
+
+
+Corrigir package.json para PostgreSQL
