@@ -1,0 +1,12 @@
+<%- include('../partials/header') %> <% title = 'Cadastrar Usuário' %>
+<form method="POST">
+  <input type="text" name="nome" placeholder="Nome" required /><br><br>
+  <input type="email" name="email" placeholder="Email" required /><br><br>
+  <input type="password" name="senha" placeholder="Senha" required /><br><br>
+  <select name="tipo">
+    <option value="leitor">Leitor</option>
+    <option value="admin">Admin</option>
+  </select><br><br>
+  <button type="submit">Salvar</button>
+</form>
+<%- include('../partials/footer') %>

@@ -1,0 +1,22 @@
+<%- include('../partials/header') %> <% title = 'Livros' %>
+
+<a href="/livros/cadastrar?sessao=logado" class="btn">+ Novo Livro</a>
+<table>
+  <tr><th>ID</th><th>Título</th><th>Autor</th><th>Ano</th><th>Status</th><th>Ações</th></tr>
+  <% livros.forEach(l => { %>
+    <tr>
+      <td><%= l.id %></td>
+      <td><%= l.titulo %></td>
+      <td><%= l.autor %></td>
+      <td><%= l.ano %></td>
+      <td><%= l.disponivel ? 'Disponível' : 'Emprestado' %></td>
+      <td>
+        <a href="/livros/editar/<%= l.id %>?sessao=logado">Editar</a> |
+        <a href="/livros/excluir/<%= l.id %>?sessao=logado" 
+           onclick="return confirm('Excluir?')" style="color:red">Excluir</a>
+      </td>
+    </tr>
+  <% }) %>
+</table>
+
+<%- include('../partials/footer') %>

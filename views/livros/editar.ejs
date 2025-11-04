@@ -1,0 +1,11 @@
+<%- include('../partials/header') %> <% title = 'Editar Livro' %>
+
+<form method="POST" action="/livros/editar/<%= livro.id %>?sessao=logado">
+  <input type="text" name="titulo" value="<%= livro.titulo %>" required /><br><br>
+  <input type="text" name="autor" value="<%= livro.autor %>" required /><br><br>
+  <input type="number" name="ano" value="<%= livro.ano %>" required /><br><br>
+  <button>Atualizar</button>
+  <a href="/livros?sessao=logado">Cancelar</a>
+</form>
+
+<%- include('../partials/footer') %>

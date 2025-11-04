@@ -1,0 +1,21 @@
+<%- include('../partials/header') %> <% title = 'Usuários' %>
+
+<a href="/usuarios/cadastrar?sessao=logado" class="btn">+ Novo Usuário</a>
+<table>
+  <tr><th>ID</th><th>Nome</th><th>Email</th><th>Tipo</th><th>Ações</th></tr>
+  <% usuarios.forEach(u => { %>
+    <tr>
+      <td><%= u.id %></td>
+      <td><%= u.nome %></td>
+      <td><%= u.email %></td>
+      <td><%= u.tipo %></td>
+      <td>
+        <a href="/usuarios/editar/<%= u.id %>?sessao=logado">Editar</a> |
+        <a href="/usuarios/excluir/<%= u.id %>?sessao=logado" 
+           onclick="return confirm('Excluir?')" style="color:red">Excluir</a>
+      </td>
+    </tr>
+  <% }) %>
+</table>
+
+<%- include('../partials/footer') %>

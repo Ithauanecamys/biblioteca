@@ -1,0 +1,21 @@
+<%- include('partials/header', { title: 'Login' }) %>
+
+<h2>Login do Sistema</h2>
+
+<form method="POST">
+  <div class="form-group">
+    <label>Email:</label>
+    <input type="email" name="email" placeholder="Digite seu email" required />
+  </div>
+  
+  <div class="form-group">
+    <label>Senha:</label>
+    <input type="password" name="senha" placeholder="Digite sua senha" required />
+  </div>
+  
+  <button type="submit">Entrar no Sistema</button>
+</form>
+
+<p><small><strong>Dica:</strong> admin@biblio.com / senha: 123</small></p>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca - <%= typeof title !== 'undefined' ? title : 'Sistema' %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <% if (typeof title !== 'undefined' && title !== 'Login') { %>
+  <nav>
+    <a href="/usuarios?sessao=logado">👥 Usuários</a> |
+    <a href="/livros?sessao=logado">📚 Livros</a> |
+    <a href="/emprestimos?sessao=logado">📖 Empréstimos</a> |
+    <a href="/login">🚪 Sair</a>
+  </nav>
+  <% } %>
+  
+  <div class="container">
+    <% if (typeof title !== 'undefined') { %>
+      <h1><%= title %></h1>
+    <% } %>
+    

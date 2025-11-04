@@ -1,0 +1,15 @@
+<%- include('../partials/header') %> <% title = 'Editar Usuário' %>
+
+<form method="POST" action="/usuarios/editar/<%= usuario.id %>?sessao=logado">
+  <input type="text" name="nome" value="<%= usuario.nome %>" required /><br><br>
+  <input type="email" name="email" value="<%= usuario.email %>" required /><br><br>
+  <input type="password" name="senha" placeholder="Nova senha (opcional)" /><br><br>
+  <select name="tipo">
+    <option value="leitor" <%= usuario.tipo === 'leitor' ? 'selected' : '' %>>Leitor</option>
+    <option value="admin" <%= usuario.tipo === 'admin' ? 'selected' : '' %>>Admin</option>
+  </select><br><br>
+  <button>Atualizar</button>
+  <a href="/usuarios?sessao=logado">Cancelar</a>
+</form>
+
+<%- include('../partials/footer') %>
