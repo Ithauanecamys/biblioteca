@@ -10,5 +10,8 @@
     "ejs": "^3.1.9",
     "better-sqlite3": "^8.7.0",
     "body-parser": "^1.20.2"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
