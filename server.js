@@ -1,8 +1,7 @@
 const express = require('express');
-const Database = require('better-sqlite3');
+const { Pool } = require('pg');
 const bodyParser = require('body-parser');
 const path = require('path');
-const fs = require('fs');
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -10,158 +9,121 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// better-sqlite3 com path fixo para Render
-const dbPath = process.env.NODE_ENV === 'production' ? '/opt/render/project/src/database.db' : './database.db';
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
-// Criar banco se não existir
-if (!fs.existsSync(dbPath)) {
-  fs.writeFileSync(dbPath, '');
-}
+pool.connect((err) => {
+  if (err) {
+    console.error('ERRO POSTGRES:', err);
+    process.exit(1);
+  }
+  console.log('POSTGRESQL CONECTADO!');
+  criarTabelas();
+});
 
-const db = new Database(dbPath);
-
-// Criar tabelas
-try {
-  db.exec(`
+async function criarTabelas() {
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS usuarios (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT,
-      email TEXT UNIQUE,
-      senha TEXT,
-      tipo TEXT
+      id SERIAL PRIMARY KEY,
+      nome VARCHAR(100),
+      email VARCHAR(100) UNIQUE,
+      senha VARCHAR(50),
+      tipo VARCHAR(20)
     );
     CREATE TABLE IF NOT EXISTS livros (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      titulo TEXT,
-      autor TEXT,
+      id SERIAL PRIMARY KEY,
+      titulo VARCHAR(200),
+      autor VARCHAR(100),
       ano INTEGER,
-      disponivel INTEGER DEFAULT 1
+      disponivel BOOLEAN DEFAULT true
     );
     CREATE TABLE IF NOT EXISTS emprestimos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      usuario_id INTEGER,
-      livro_id INTEGER,
-      data_emprestimo TEXT
-    )
+      id SERIAL PRIMARY KEY,
+      usuario_id INTEGER REFERENCES usuarios(id),
+      livro_id INTEGER REFERENCES livros(id),
+      data_emprestimo DATE
+    );
   `);
-  console.log('Tabelas criadas com sucesso!');
-} catch (err) {
-  console.error('Erro ao criar tabelas:', err);
 }
 
-// Auth simples
 const auth = (req, res, next) => {
   if (req.query.sessao === 'logado') return next();
   res.redirect('/login');
 };
 
-// LOGIN
 app.get('/login', (req, res) => res.render('login'));
 app.post('/login', (req, res) => {
   if (req.body.email === 'admin@biblio.com' && req.body.senha === '123') {
     res.redirect('/usuarios?sessao=logado');
   } else {
-    res.send('Login inválido. <a href="/login">Tentar novamente</a>');
+    res.send('Login inválido. <a href="/login">Voltar</a>');
   }
 });
 
-// USUÁRIOS
-app.get('/usuarios', auth, (req, res) => {
-  const usuarios = db.prepare('SELECT * FROM usuarios').all();
-  res.render('usuarios/listar', { usuarios });
+app.get('/usuarios', auth, async (req, res) => {
+  const { rows } = await pool.query('SELECT * FROM usuarios');
+  res.render('usuarios/listar', { usuarios: rows });
 });
 
-app.get('/usuarios/cadastrar', auth, (req, res) => res.render('usuarios/cadastrar'));
-app.post('/usuarios/cadastrar', auth, (req, res) => {
+app.post('/usuarios/cadastrar', auth, async (req, res) => {
   const { nome, email, senha, tipo } = req.body;
-  try {
-    db.prepare('INSERT INTO usuarios (nome, email, senha, tipo) VALUES (?, ?, ?, ?)').run(nome, email, senha, tipo);
-    res.redirect('/usuarios?sessao=logado');
-  } catch (err) {
-    res.send('Erro ao cadastrar: ' + err.message);
-  }
-});
-
-app.get('/usuarios/editar/:id', auth, (req, res) => {
-  const usuario = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(req.params.id);
-  res.render('usuarios/editar', { usuario });
-});
-
-app.post('/usuarios/editar/:id', auth, (req, res) => {
-  const { nome, email, senha, tipo } = req.body;
-  if (senha) {
-    db.prepare('UPDATE usuarios SET nome = ?, email = ?, senha = ?, tipo = ? WHERE id = ?').run(nome, email, senha, tipo, req.params.id);
-  } else {
-    db.prepare('UPDATE usuarios SET nome = ?, email = ?, tipo = ? WHERE id = ?').run(nome, email, tipo, req.params.id);
-  }
+  await pool.query('INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)', [nome, email, senha, tipo]);
   res.redirect('/usuarios?sessao=logado');
 });
 
-app.get('/usuarios/excluir/:id', auth, (req, res) => {
-  db.prepare('DELETE FROM usuarios WHERE id = ?').run(req.params.id);
-  res.redirect('/usuarios?sessao=logado');
+app.get('/livros', auth, async (req, res) => {
+  const { rows } = await pool.query('SELECT * FROM livros');
+  res.render('livros/listar', { livros: rows });
 });
 
-// LIVROS
-app.get('/livros', auth, (req, res) => {
-  const livros = db.prepare('SELECT * FROM livros').all();
-  res.render('livros/listar', { livros });
-});
-
-app.get('/livros/cadastrar', auth, (req, res) => res.render('livros/cadastrar'));
-app.post('/livros/cadastrar', auth, (req, res) => {
+app.post('/livros/cadastrar', auth, async (req, res) => {
   const { titulo, autor, ano } = req.body;
-  db.prepare('INSERT INTO livros (titulo, autor, ano, disponivel) VALUES (?, ?, ?, 1)').run(titulo, autor, ano);
+  await pool.query('INSERT INTO livros (titulo, autor, ano) VALUES ($1, $2, $3)', [titulo, autor, ano]);
   res.redirect('/livros?sessao=logado');
 });
 
-app.get('/livros/editar/:id', auth, (req, res) => {
-  const livro = db.prepare('SELECT * FROM livros WHERE id = ?').get(req.params.id);
-  res.render('livros/editar', { livro });
-});
-
-app.post('/livros/editar/:id', auth, (req, res) => {
-  const { titulo, autor, ano } = req.body;
-  db.prepare('UPDATE livros SET titulo = ?, autor = ?, ano = ? WHERE id = ?').run(titulo, autor, ano, req.params.id);
-  res.redirect('/livros?sessao=logado');
-});
-
-app.get('/livros/excluir/:id', auth, (req, res) => {
-  db.prepare('DELETE FROM livros WHERE id = ?').run(req.params.id);
-  res.redirect('/livros?sessao=logado');
-});
-
-// EMPRÉSTIMOS
-app.get('/emprestimos', auth, (req, res) => {
-  const emprestimos = db.prepare(`
-    SELECT e.id, u.nome as usuario, l.titulo as livro, e.data_emprestimo
+app.get('/emprestimos', auth, async (req, res) => {
+  const emprestimos = await pool.query(`
+    SELECT e.id, u.nome AS usuario, l.titulo AS livro, e.data_emprestimo,
+           e.data_emprestimo + INTERVAL '30 days' AS data_devolucao,
+           CASE WHEN CURRENT_DATE > (e.data_emprestimo + INTERVAL '30 days') 
+             THEN EXTRACT(DAY FROM (CURRENT_DATE - (e.data_emprestimo + INTERVAL '30 days'))) * 3.90
+             ELSE 0 END AS multa
     FROM emprestimos e
     JOIN usuarios u ON e.usuario_id = u.id
     JOIN livros l ON e.livro_id = l.id
-  `).all();
-  const usuarios = db.prepare('SELECT id, nome FROM usuarios').all();
-  const livros = db.prepare('SELECT id, titulo FROM livros WHERE disponivel = 1').all();
-  res.render('emprestimos/listar', { emprestimos, usuarios, livros });
+  `);
+  const usuarios = await pool.query('SELECT id, nome FROM usuarios');
+  const livros = await pool.query('SELECT id, titulo, disponivel FROM livros');
+  res.render('emprestimos/listar', { 
+    emprestimos: emprestimos.rows, 
+    usuarios: usuarios.rows, 
+    livros: livros.rows 
+  });
 });
 
-app.post('/emprestimos/cadastrar', auth, (req, res) => {
+app.post('/emprestimos/cadastrar', auth, async (req, res) => {
   const { usuario_id, livro_id, data_emprestimo } = req.body;
-  db.prepare('INSERT INTO emprestimos (usuario_id, livro_id, data_emprestimo) VALUES (?, ?, ?)').run(usuario_id, livro_id, data_emprestimo);
-  db.prepare('UPDATE livros SET disponivel = 0 WHERE id = ?').run(livro_id);
-  res.redirect('/emprestimos?sessao=logado');
-});
-
-app.get('/emprestimos/devolver/:id', auth, (req, res) => {
-  const row = db.prepare('SELECT livro_id FROM emprestimos WHERE id = ?').get(req.params.id);
-  if (row) {
-    db.prepare('DELETE FROM emprestimos WHERE id = ?').run(req.params.id);
-    db.prepare('UPDATE livros SET disponivel = 1 WHERE id = ?').run(row.livro_id);
+  const livro = await pool.query('SELECT disponivel FROM livros WHERE id = $1', [livro_id]);
+  if (livro.rows[0]?.disponivel) {
+    await pool.query('INSERT INTO emprestimos (usuario_id, livro_id, data_emprestimo) VALUES ($1, $2, $3)', [usuario_id, livro_id, data_emprestimo]);
+    await pool.query('UPDATE livros SET disponivel = false WHERE id = $1', [livro_id]);
   }
   res.redirect('/emprestimos?sessao=logado');
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-  console.log(`Acesse: http://localhost:${PORT}/login`);
+app.get('/emprestimos/devolver/:id', auth, async (req, res) => {
+  const { rows } = await pool.query('SELECT livro_id FROM emprestimos WHERE id = $1', [req.params.id]);
+  if (rows.length > 0) {
+    await pool.query('DELETE FROM emprestimos WHERE id = $1', [req.params.id]);
+    await pool.query('UPDATE livros SET disponivel = true WHERE id = $1', [rows[0].livro_id]);
+  }
+  res.redirect('/emprestimos?sessao=logado');
 });
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log('Servidor rodando!');
+});
+Trocar para PostgreSQL + multa 30 dias
