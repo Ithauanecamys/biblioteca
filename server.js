@@ -149,3 +149,6 @@ app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Acesse: https://biblioteca-mysql.onrender.com/login`);
 });
+
+
+Trocar para PostgreSQL + multa de 30 dias
