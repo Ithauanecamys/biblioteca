@@ -1,24 +1,10 @@
 <%- include('../partials/header') %>
 
-<table border="1" style="width:100%; text-align:center; margin:20px 0;">
-  <tr>
-    <th>ID</th>
-    <th>Livro</th>
-    <th>Usuário</th>
-    <th>Data Empréstimo</th>
-    <th>Data Devolução</th>
-    <th>Ações</th>
-  </tr>
-  <tr>
-    <td>1</td>
-    <td>Dom Casmurro</td>
-    <td>João Silva</td>
-    <td>05/11/2025</td>
-    <td>12/11/2025</td>
-    <td><a href="/emprestimos/editar">Editar</a></td>
-  </tr>
+<h1>Empréstimos</h1>
+<table>
+  <tr><th>ID</th><th>Livro</th><th>Usuário</th><th>Data</th><th>Ações</th></tr>
+  <tr><td>1</td><td>Dom Casmurro</td><td>João</td><td>05/11</td><td><a href="/emprestimos/editar">Editar</a></td></tr>
 </table>
-
-<a href="/emprestimos/cadastrar">Cadastrar Novo Empréstimo</a>
+<a href="/emprestimos/cadastrar">Cadastrar Empréstimo</a>
 
 <%- include('../partials/footer') %>
