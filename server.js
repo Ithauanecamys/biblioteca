@@ -84,11 +84,11 @@ app.get('/dashboard', (req, res) => {
 // === USUÁRIOS ===
 app.get('/usuarios', async (req, res) => {
   const result = await db.query('SELECT * FROM usuarios ORDER BY id');
-  res.render('usuarios/lista', { usuarios: result.rows });
+  res.render('usuarios/lista', { usuarios: result.rows }); // lista.ejs
 });
 
 app.get('/usuarios/novo', (req, res) => {
-  res.render('usuarios/form', { usuario: {}, action: '/usuarios' });
+  res.render('usuarios/form', { usuario: {}, action: '/usuarios' }); // form.ejs
 });
 
 app.post('/usuarios', async (req, res) => {
@@ -99,7 +99,7 @@ app.post('/usuarios', async (req, res) => {
 
 app.get('/usuarios/editar/:id', async (req, res) => {
   const result = await db.query('SELECT * FROM usuarios WHERE id = $1', [req.params.id]);
-  res.render('usuarios/form', { usuario: result.rows[0], action: `/usuarios/${req.params.id}` });
+  res.render('usuarios/form', { usuario: result.rows[0], action: `/usuarios/${req.params.id}` }); // form.ejs
 });
 
 app.post('/usuarios/:id', async (req, res) => {
@@ -116,11 +116,11 @@ app.post('/usuarios/excluir/:id', async (req, res) => {
 // === LIVROS ===
 app.get('/livros', async (req, res) => {
   const result = await db.query('SELECT * FROM livros');
-  res.render('livros/lista', { livros: result.rows });
+  res.render('livros/lista', { livros: result.rows }); // lista.ejs
 });
 
 app.get('/livros/novo', (req, res) => {
-  res.render('livros/form', { livro: {}, action: '/livros' });
+  res.render('livros/form', { livro: {}, action: '/livros' }); // form.ejs
 });
 
 app.post('/livros', async (req, res) => {
@@ -131,7 +131,7 @@ app.post('/livros', async (req, res) => {
 
 app.get('/livros/editar/:id', async (req, res) => {
   const result = await db.query('SELECT * FROM livros WHERE id = $1', [req.params.id]);
-  res.render('livros/form', { livro: result.rows[0], action: `/livros/${req.params.id}` });
+  res.render('livros/form', { livro: result.rows[0], action: `/livros/${req.params.id}` }); // form.ejs
 });
 
 app.post('/livros/:id', async (req, res) => {
@@ -160,7 +160,7 @@ app.get('/emprestimos', async (req, res) => {
     emprestimos: emprestimos.rows,
     usuarios: usuarios.rows,
     livros: livros.rows
-  });
+  }); // lista.ejs
 });
 
 app.post('/emprestimos', async (req, res) => {
