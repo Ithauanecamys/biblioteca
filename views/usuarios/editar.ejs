@@ -1,15 +1,22 @@
-<%- include('../partials/header') %> <% title = 'Editar Usuário' %>
+<%- include('../partials/header') %>
 
-<form method="POST" action="/usuarios/editar/<%= usuario.id %>?sessao=logado">
-  <input type="text" name="nome" value="<%= usuario.nome %>" required /><br><br>
-  <input type="email" name="email" value="<%= usuario.email %>" required /><br><br>
+<h1>Editar Usuário</h1>
+
+<form method="POST" action="/usuarios/editar">
+  <input type="hidden" name="id" value="1" />
+
+  <label>Nome:</label>
+  <input type="text" name="nome" value="João Silva" required /><br><br>
+
+  <label>Email:</label>
+  <input type="email" name="email" value="joao@email.com" required /><br><br>
+
+  <label>Senha:</label>
   <input type="password" name="senha" placeholder="Nova senha (opcional)" /><br><br>
-  <select name="tipo">
-    <option value="leitor" <%= usuario.tipo === 'leitor' ? 'selected' : '' %>>Leitor</option>
-    <option value="admin" <%= usuario.tipo === 'admin' ? 'selected' : '' %>>Admin</option>
-  </select><br><br>
-  <button>Atualizar</button>
-  <a href="/usuarios?sessao=logado">Cancelar</a>
+
+  <button type="submit">Salvar Alterações</button>
 </form>
+
+<a href="/usuarios/listar">Voltar</a>
 
 <%- include('../partials/footer') %>
