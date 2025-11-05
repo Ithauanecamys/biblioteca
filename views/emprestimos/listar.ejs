@@ -1,20 +1,26 @@
-<%- include('../partials/header') %> <% title = 'Empréstimos' %>
+<%- include('../partials/header') %>
 
-<a href="/emprestimos/cadastrar?sessao=logado" class="btn">+ Novo Empréstimo</a>
-<table>
-  <tr><th>ID</th><th>Usuário</th><th>Livro</th><th>Data</th><th>Ação</th></tr>
-  <% emprestimos.forEach(e => { %>
-    <tr>
-      <td><%= e.id %></td>
-      <td><%= e.usuario %></td>
-      <td><%= e.livro %></td>
-      <td><%= e.data_emprestimo %></td>
-      <td>
-        <a{ href="/emprestimos/devolver/<%= e.id %>?sessao=logado" 
-           onclick="return confirm('Devolver?')" style="color:green">Devolver</a>
-      </td>
-    </tr>
-  <% }) %>
+<h1>Empréstimos</h1>
+
+<table border="1" style="width:100%; text-align:center; margin:20px 0;">
+  <tr>
+    <th>ID</th>
+    <th>Livro</th>
+    <th>Usuário</th>
+    <th>Data Empréstimo</th>
+    <th>Data Devolução</th>
+    <th>Ações</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Dom Casmurro</td>
+    <td>João Silva</td>
+    <td>05/11/2025</td>
+    <td>12/11/2025</td>
+    <td><a href="/emprestimos/editar">Editar</a></td>
+  </tr>
 </table>
+
+<a href="/emprestimos/cadastrar">Cadastrar Novo Empréstimo</a>
 
 <%- include('../partials/footer') %>
