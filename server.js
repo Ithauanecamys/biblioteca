@@ -58,6 +58,14 @@ app.get('/livros/editar', (req, res) => {
   res.render('livros/editar');
 });
 
+app.post('/livros/cadastrar', (req, res) => {
+  res.redirect('/livros/listar');
+});
+
+app.post('/livros/editar', (req, res) => {
+  res.redirect('/livros/listar');
+});
+
 // === ROTAS PARA EMPRÉSTIMOS ===
 app.get('/emprestimos/listar', (req, res) => {
   res.render('emprestimos/listar');
@@ -72,7 +80,6 @@ app.get('/emprestimos/editar', (req, res) => {
 });
 
 app.post('/emprestimos/cadastrar', (req, res) => {
-  // Aqui você salvaria no banco (depois!)
   res.redirect('/emprestimos/listar');
 });
 
