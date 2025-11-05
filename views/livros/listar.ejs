@@ -1,13 +1,10 @@
 <%- include('../partials/header') %>
 
-<table border="1" style="width:100%; text-align:center; margin:20px 0;">
+<h1>Livros Cadastrados</h1>
+
+<table>
   <tr>
-    <th>ID</th>
-    <th>Título</th>
-    <th>Autor</th>
-    <th>Ano</th>
-    <th>Status</th>
-    <th>Ações</th>
+    <th>ID</th><th>Título</th><th>Autor</th><th>Ano</th><th>Status</th><th>Ações</th>
   </tr>
   <% livros.forEach(l => { %>
     <tr>
@@ -16,7 +13,7 @@
       <td><%= l.autor %></td>
       <td><%= l.ano %></td>
       <td><%= l.status %></td>
-      <td><a href="/livros/editar">Editar</a></td>
+      <td><a href="/livros/editar?id=<%= l.id %>">Editar</a></td>
     </tr>
   <% }) %>
 </table>
