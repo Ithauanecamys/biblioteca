@@ -1,13 +1,23 @@
 <!DOCTYPE html>
-<html><head><title>Dashboard</title><link rel="stylesheet" href="/style.css"></head><body>
-  <div class="login-container" style="max-width: 600px;">
-    <h1>Biblioteca</h1>
-    <p>Bem-vindo, <strong><%= usuario.nome %></strong>!</p>
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px;">
-      <a href="/usuarios" style="padding: 20px; background: #667eea; color: white; text-align: center; border-radius: 10px; text-decoration: none;">Usuários</a>
-      <a href="/livros" style="padding: 20px; background: #764ba2; color: white; text-align: center; border-radius: 10px; text-decoration: none;">Livros</a>
-      <a href="/emprestimos" style="padding: 20px; background: #e74c3c; color: white; text-align: center; border-radius: 10px; text-decoration: none;">Empréstimos</a>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Biblioteca</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Biblioteca</h1>
+      <p>Bem-vindo, <strong><%= usuario.nome %></strong>!</p>
+      <div class="nav-buttons">
+        <a href="/usuarios" class="nav-btn usuarios">Usuários</a>
+        <a href="/livros" class="nav-btn livros">Livros</a>
+        <a href="/emprestimos" class="nav-btn emprestimos">Empréstimos</a>
+      </div>
+      <a href="/" class="voltar">Sair</a>
     </div>
-    <a href="/" style="display: block; margin-top: 20px; color: #999;">Sair</a>
   </div>
-</body></html>
+</body>
+</html>
