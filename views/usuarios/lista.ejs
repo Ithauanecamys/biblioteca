@@ -24,18 +24,28 @@
         </thead>
         <tbody>
           <% if (usuarios.length === 0) { %>
-            <tr><td colspan="5" style="text-align:center; color:#999;">Nenhum usuário.</td></tr>
+            <tr>
+              <td colspan="5" style="text-align:center; color:#999; padding:20px;">
+                Nenhum usuário cadastrado.
+              </td>
+            </tr>
           <% } else { %>
             <% usuarios.forEach(u => { %>
               <tr>
-                <td><%= u.id %></td>
+                <td><strong>#<%= u.id %></strong></td>
                 <td><%= u.nome %></td>
                 <td><%= u.email %></td>
-                <td><strong style="color: <%= u.tipo === 'admin' ? '#9b59b6' : '#3498db' %>;"><%= u.tipo %></strong></td>
+                <td>
+                  <strong style="color: <%= u.tipo === 'admin' ? '#9b59b6' : '#3498db' %>;">
+                    <%= u.tipo.charAt(0).toUpperCase() + u.tipo.slice(1) %>
+                  </strong>
+                </td>
                 <td>
                   <a href="/usuarios/editar/<%= u.id %>" class="btn btn-edit">Editar</a>
                   <form method="POST" action="/usuarios/excluir/<%= u.id %>" style="display:inline;">
-                    <button type="submit" class="btn btn-delete" onclick="return confirm('Excluir?')">Excluir</button>
+                    <button type="submit" class="btn btn-delete" onclick="return confirm('Tem certeza que deseja excluir este usuário?')">
+                      Excluir
+                    </button>
                   </form>
                 </td>
               </tr>
@@ -46,7 +56,7 @@
     </div>
   </div>
 
-  <!-- Seta de voltar -->
-  <a href="/dashboard" class="back-arrow">Back</a>
+  <!-- Seta fixa no canto inferior esquerdo (sem texto) -->
+  <a href="/dashboard" class="back-arrow" title="Voltar ao Dashboard"></a>
 </body>
 </html>
