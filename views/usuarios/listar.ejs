@@ -1,21 +1,22 @@
-<%- include('../partials/header') %> <% title = 'Usuários' %>
+<%- include('../partials/header') %>
 
-<a href="/usuarios/cadastrar?sessao=logado" class="btn">+ Novo Usuário</a>
-<table>
-  <tr><th>ID</th><th>Nome</th><th>Email</th><th>Tipo</th><th>Ações</th></tr>
-  <% usuarios.forEach(u => { %>
-    <tr>
-      <td><%= u.id %></td>
-      <td><%= u.nome %></td>
-      <td><%= u.email %></td>
-      <td><%= u.tipo %></td>
-      <td>
-        <a href="/usuarios/editar/<%= u.id %>?sessao=logado">Editar</a> |
-        <a href="/usuarios/excluir/<%= u.id %>?sessao=logado" 
-           onclick="return confirm('Excluir?')" style="color:red">Excluir</a>
-      </td>
-    </tr>
-  <% }) %>
+<h1>Usuários</h1>
+
+<table border="1" style="width:100%; text-align:center; margin:20px 0;">
+  <tr>
+    <th>ID</th>
+    <th>Nome</th>
+    <th>Email</th>
+    <th>Ações</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>João Silva</td>
+    <td>joao@email.com</td>
+    <td><a href="/usuarios/editar">Editar</a></td>
+  </tr>
 </table>
+
+<a href="/usuarios/cadastrar">Cadastrar Novo Usuário</a>
 
 <%- include('../partials/footer') %>
