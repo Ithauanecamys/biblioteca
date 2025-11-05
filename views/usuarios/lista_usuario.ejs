@@ -10,8 +10,8 @@
   <div class="container">
     <div class="card">
       <h2>Usuários Cadastrados</h2>
-      <p style="color:#777; margin-bottom:20px; font-size:15px;">
-        Você só pode visualizar os nomes dos usuários.
+      <p style="color:#777; margin-bottom:20px; font-size:15px; text-align:center;">
+        Você pode visualizar apenas os nomes dos usuários.
       </p>
 
       <table class="table">
@@ -24,7 +24,7 @@
         <tbody>
           <% if (usuarios.length === 0) { %>
             <tr>
-              <td colspan="2" style="text-align:center; color:#999; padding:20px;">
+              <td colspan="2" style="text-align:center; color:#999; padding:25px;">
                 Nenhum usuário cadastrado.
               </td>
             </tr>
@@ -41,7 +41,7 @@
     </div>
   </div>
 
-  <!-- Seta de voltar -->
-  <a href="/dashboard" class="back-arrow">Back</a>
+  <!-- Seta fixa no canto inferior esquerdo (sem texto) -->
+  <a href="/dashboard" class="back-arrow" title="Voltar ao Dashboard"></a>
 </body>
 </html>
