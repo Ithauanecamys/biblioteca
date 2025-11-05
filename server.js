@@ -32,17 +32,23 @@ app.post('/login', async (req, res) => {
     if (result.rows.length > 0) {
       res.redirect('/livros/listar'); // Página inicial após login
     } else {
-      res.render('login', { erro: 'Email ou senha incorretos' });
+      res.render('login', { erro: 'Email ou senha incorretos. Dica: admin@biblio.com / 123' });
     }
   } catch (err) {
     console.error('Erro no login:', err);
-    res.status(500).send('Erro interno: ' + err.message);
+    res.status(500).render('login', { erro: 'Erro interno: ' + err.message });
   }
 });
 
 // === ROTAS PARA LIVROS ===
 app.get('/livros/listar', (req, res) => {
-  res.render('livros/listar');
+  // DADOS DE TESTE (depois vem do banco)
+  const livros = [
+    { id: 1, titulo: 'Dom Casmurro', autor: 'Machado de Assis', ano: 1899, status: 'Disponível' },
+    { id: 2, titulo: '1984', autor: 'George Orwell', ano: 1949, status: 'Emprestado' },
+    { id: 3, titulo: 'O Pequeno Príncipe', autor: 'Saint-Exupéry', ano: 1943, status: 'Disponível' }
+  ];
+  res.render('livros/listar', { livros });
 });
 
 app.get('/livros/cadastrar', (req, res) => {
@@ -69,7 +75,6 @@ app.get('/emprestimos/editar', (req, res) => {
 
 // POST para salvar alterações no empréstimo
 app.post('/emprestimos/editar', (req, res) => {
-  // Aqui você salvaria no banco (depois!)
   res.redirect('/emprestimos/listar');
 });
 
