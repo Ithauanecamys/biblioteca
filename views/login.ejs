@@ -1,32 +1,134 @@
-<%- include('partials/header', { title: 'Login' }) %>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login - Biblioteca</title>
+  <title>Login - Sistema de Biblioteca</title>
   <link rel="stylesheet" href="/style.css" />
   <style>
-    body { font-family: Arial; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .login-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
-    input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-    button { width: 100%; padding: 10px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #2980b9; }
-    .erro { color: red; text-align: center; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-container h2 {
+      margin-bottom: 20px;
+      color: #333;
+      font-size: 28px;
+    }
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 600;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border 0.3s;
+    }
+    .input-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #5a6fd8;
+    }
+    .erro {
+      color: #e74c3c;
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: #667eea;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 36px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>Login</h2>
+  <div class="login-container">
+    <div class="logo">📚</div>
+    <h2>Sistema de Biblioteca</h2>
+    <p style="color: #777; margin-bottom: 25px;">Faça login para continuar</p>
+
     <% if (erro) { %>
       <p class="erro"><%= erro %></p>
     <% } %>
+
     <form method="POST" action="/login">
-      <input type="email" name="email" placeholder="Email" required />
-      <input type="password" name="senha" placeholder="Senha" required />
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email"
+          name="email" 
+          placeholder="admin@biblio.com" 
+          required 
+        />
+      </div>
+
+      <div class="input-group">
+        <label for="senha">Senha</label>
+        <input 
+          type="password" 
+          id="senha"
+          name="senha" 
+          placeholder="••••••" 
+          value="123"
+          required 
+        />
+      </div>
+
       <button type="submit">Entrar no Sistema</button>
     </form>
+
+    <p style="margin-top: 20px; color: #999; font-size: 14px;">
+      Dica: Use <strong>admin@biblio.com</strong> / <strong>123</strong>
+    </p>
   </div>
 </body>
 </html>
