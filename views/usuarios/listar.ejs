@@ -1,20 +1,10 @@
 <%- include('../partials/header') %>
 
-<table border="1" style="width:100%; text-align:center; margin:20px 0;">
-  <tr>
-    <th>ID</th>
-    <th>Nome</th>
-    <th>Email</th>
-    <th>Ações</th>
-  </tr>
-  <tr>
-    <td>1</td>
-    <td>João Silva</td>
-    <td>joao@email.com</td>
-    <td><a href="/usuarios/editar">Editar</a></td>
-  </tr>
+<h1>Usuários</h1>
+<table>
+  <tr><th>ID</th><th>Nome</th><th>Email</th><th>Ações</th></tr>
+  <tr><td>1</td><td>João Silva</td><td>joao@email.com</td><td><a href="/usuarios/editar">Editar</a></td></tr>
 </table>
-
-<a href="/usuarios/cadastrar">Cadastrar Novo Usuário</a>
+<a href="/usuarios/cadastrar">Cadastrar Usuário</a>
 
 <%- include('../partials/footer') %>
