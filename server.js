@@ -30,7 +30,7 @@ app.post('/login', async (req, res) => {
     );
 
     if (result.rows.length > 0) {
-      res.redirect('/livros/listar'); // Página inicial após login
+      res.redirect('/livros/listar');
     } else {
       res.render('login', { erro: 'Email ou senha incorretos. Dica: admin@biblio.com / 123' });
     }
@@ -71,6 +71,11 @@ app.get('/emprestimos/editar', (req, res) => {
   res.render('emprestimos/editar');
 });
 
+app.post('/emprestimos/cadastrar', (req, res) => {
+  // Aqui você salvaria no banco (depois!)
+  res.redirect('/emprestimos/listar');
+});
+
 app.post('/emprestimos/editar', (req, res) => {
   res.redirect('/emprestimos/listar');
 });
@@ -86,6 +91,14 @@ app.get('/usuarios/cadastrar', (req, res) => {
 
 app.get('/usuarios/editar', (req, res) => {
   res.render('usuarios/editar');
+});
+
+app.post('/usuarios/cadastrar', (req, res) => {
+  res.redirect('/usuarios/listar');
+});
+
+app.post('/usuarios/editar', (req, res) => {
+  res.redirect('/usuarios/listar');
 });
 
 // === ROTA 404 ===
