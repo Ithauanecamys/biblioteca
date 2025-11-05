@@ -9,80 +9,107 @@
 <body>
   <div class="container">
     <div class="card">
-      <h2>Empréstimos</h2>
+      <h2>Novo Empréstimo</h2>
 
-      <!-- Formulário de Empréstimo -->
-      <div style="background:#f8f9fa; padding:20px; border-radius:10px; margin-bottom:20px;">
+      <!-- Formulário com Datas -->
+      <div style="background:#f8f9fa; padding:25px; border-radius:12px; margin-bottom:25px;">
         <form method="POST" action="/emprestimos">
-          <div style="display:flex; gap:15px; flex-wrap:wrap; align-items:end;">
-            <div style="flex:1; min-width:200px;">
-              <label style="display:block; margin-bottom:8px; font-weight:600;">Usuário</label>
-              <select name="usuario_id" required style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
-                <option value="">Selecione...</option>
+          <div style="display:grid; gap:18px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+            
+            <!-- Usuário -->
+            <div>
+              <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Usuário</label>
+              <select name="usuario_id" required style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;">
+                <option value="">Selecione o usuário</option>
                 <% usuarios.forEach(u => { %>
                   <option value="<%= u.id %>"><%= u.nome %></option>
                 <% }) %>
               </select>
             </div>
-            <div style="flex:1; min-width:200px;">
-              <label style="display:block; margin-bottom:8px; font-weight:600;">Livro Disponível</label>
-              <select name="livro_id" required style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
-                <option value="">Selecione...</option>
+
+            <!-- Livro -->
+            <div>
+              <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Livro Disponível</label>
+              <select name="livro_id" required style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;">
+                <option value="">Selecione o livro</option>
                 <% livros.forEach(l => { %>
                   <option value="<%= l.id %>">
-                    <%= l.titulo %> (Autor: <%= l.autor %>) — <%= l.exemplares %> em estoque
+                    <%= l.titulo %> — <%= l.exemplares %> em estoque
                   </option>
                 <% }) %>
               </select>
             </div>
+
+            <!-- Data Empréstimo -->
             <div>
-              <button type="submit" class="btn" style="background:#27ae60; color:white; padding:12px 20px;">
-                Fazer Empréstimo
-              </button>
+              <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Data do Empréstimo</label>
+              <input 
+                type="date" 
+                name="data_emprestimo" 
+                required 
+                style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
+                value="<%= new Date().toISOString().split('T')[0] %>"
+              />
             </div>
+
+            <!-- Data Devolução -->
+            <div>
+              <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Data Prevista de Devolução</label>
+              <input 
+                type="date" 
+                name="data_devolucao_prevista" 
+                required 
+                style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
+                min="<%= new Date().toISOString().split('T')[0] %>"
+              />
+            </div>
+
+          </div>
+
+          <div style="margin-top:20px; text-align:center;">
+            <button type="submit" class="btn" style="background:#27ae60; color:white; padding:14px 30px; font-size:16px; font-weight:600;">
+              Confirmar Empréstimo
+            </button>
           </div>
         </form>
       </div>
 
       <!-- Tabela de Empréstimos -->
+      <h2 style="margin-bottom:15px;">Empréstimos Realizados</h2>
       <table class="table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Usuário</th>
             <th>Livro</th>
-            <th>Data Empréstimo</th>
-            <th>Data Devolução</th>
+            <th>Empréstimo</th>
+            <th>Previsão</th>
+            <th>Devolvido em</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>
         </thead>
         <tbody>
           <% if (emprestimos.length === 0) { %>
-            <tr><td colspan="7" style="text-align:center; color:#999; padding:20px;">Nenhum empréstimo registrado.</td></tr>
+            <tr><td colspan="8" style="text-align:center; color:#999; padding:25px;">Nenhum empréstimo registrado.</td></tr>
           <% } else { %>
             <% emprestimos.forEach(e => { %>
               <tr>
                 <td><strong>#<%= e.id %></strong></td>
                 <td><%= e.usuario_nome %></td>
                 <td><strong><%= e.livro_titulo %></strong></td>
-                <td>
-                  <span style="color:#27ae60; font-weight:600;">
-                    <%= new Date(e.data_emprestimo).toLocaleDateString('pt-BR') %>
-                  </span>
-                </td>
+                <td><span style="color:#27ae60;"><%= new Date(e.data_emprestimo).toLocaleDateString('pt-BR') %></span></td>
+                <td><em style="color:#3498db;"><%= e.data_devolucao_prevista ? new Date(e.data_devolucao_prevista).toLocaleDateString('pt-BR') : '—' %></em></td>
                 <td>
                   <% if (e.data_devolucao) { %>
-                    <span style="color:#7f8c8d;">
-                      <%= new Date(e.data_devolucao).toLocaleDateString('pt-BR') %>
-                    </span>
+                    <span style="color:#7f8c8d;"><%= new Date(e.data_devolucao).toLocaleDateString('pt-BR') %></span>
                   <% } else { %>
                     <em style="color:#e67e22;">Pendente</em>
                   <% } %>
                 </td>
                 <td>
                   <span class="status <%= e.data_devolucao ? 'devolvido' : 'pendente' %>">
-                    <%= e.data_devolucao ? 'Devolvido' : 'Emprestado' %>
+                    <%= e.data_devolucao ? 'Devolvido' : 'Ativo' %>
                   </span>
                 </td>
                 <td>
@@ -92,7 +119,7 @@
                     </form>
                   <% } %>
                   <form method="POST" action="/emprestimos/excluir/<%= e.id %>" style="display:inline;">
-                    <button type="submit" class="btn btn-delete" onclick="return confirm('Excluir empréstimo?')">Excluir</button>
+                    <button type="submit" class="btn btn-delete" onclick="return confirm('Excluir?')">Excluir</button>
                   </form>
                 </td>
               </tr>
