@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Empréstimos - Biblioteca</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      max-width: 1000px;
+      width: 100%;
+      margin: 20px;
+    }
+    h1 { color: #333; text-align: center; margin-bottom: 20px; }
+    .form-emprestimo {
+      background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;
+    }
+    .form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+    .form-group { flex: 1; min-width: 200px; }
+    label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; }
+    select, button {
+      width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;
+    }
+    button { background: #28a745; color: white; border: none; cursor: pointer; font-weight: 600; }
+    button:hover { background: #218838; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; color: #333; }
+    .status { padding: 5px 10px; border-radius: 5px; color: white; font-size: 12px; }
+    .devolvido { background: #28a745; }
+    .pendente { background: #dc3545; }
+    .acao-btn { padding: 6px 10px; margin: 0 3px; border: none; border-radius: 5px; color: white; cursor: pointer; }
+    .devolver { background: #ffc107; color: #212529; }
+    .excluir { background: #dc3545; }
+    .voltar { display: block; margin-top: 20px; color: #999; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Empréstimos</h1>
+
+    <!-- Formulário de novo empréstimo -->
+    <div class="form-emprestimo">
+      <form method="POST" action="/emprestimos">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="usuario_id">Usuário</label>
+            <select name="usuario_id" id="usuario_id" required>
+              <option value="">Selecione...</option>
+              <% usuarios.forEach(u => { %>
+                <option value="<%= u.id %>"><%= u.nome %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="livro_id">Livro</label>
+            <select name="livro_id" id="livro_id" required>
+              <option value="">Selecione...</option>
+              <% livros.forEach(l => { %>
+                <option value="<%= l.id %>"><%= l.titulo %> (<%= l.exemplares %> disp.)</option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex; align-items:end;">
+            <button type="submit">Fazer Empréstimo</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Lista de empréstimos -->
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Usuário</th>
+          <th>Livro</th>
+          <th>Empréstimo</th>
+          <th>Devolução</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (emprestimos.length === 0) { %>
+          <tr><td colspan="7" style="text-align:center; color:#999;">Nenhum empréstimo registrado.</td></tr>
+        <% } else { %>
+          <% emprestimos.forEach(e => { %>
+            <tr>
+              <td><%= e.id %></td>
+              <td><%= e.usuario_nome %></td>
+              <td><%= e.livro_titulo %></td>
+              <td><%= new Date(e.data_emprestimo).toLocaleDateString('pt-BR') %></td>
+              <td><%= e.data_devolucao ? new Date(e.data_devolucao).toLocaleDateString('pt-BR') : '—' %></td>
+              <td>
+                <span class="status <%= e.data_devolucao ? 'devolvido' : 'pendente' %>">
+                  <%= e.data_devolucao ? 'Devolvido' : 'Pendente' %>
+                </span>
+              </td>
+              <td>
+                <% if (!e.data_devolucao) { %>
+                  <form method="POST" action="/emprestimos/devolver/<%= e.id %>" style="display:inline;">
+                    <button type="submit" class="acao-btn devolver">Devolver</button>
+                  </form>
+                <% } %>
+                <form method="POST" action="/emprestimos/excluir/<%= e.id %>" style="display:inline;">
+                  <button type="submit" class="acao-btn excluir" onclick="return confirm('Excluir empréstimo?')">Excluir</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+
+    <a href="/dashboard" class="voltar">Voltar ao Dashboard</a>
+  </div>
+</body>
+</html>
