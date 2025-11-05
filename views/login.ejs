@@ -25,6 +25,19 @@
       max-width: 400px;
       text-align: center;
     }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: #667eea;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 36px;
+      font-weight: bold;
+    }
     .login-container h2 {
       margin-bottom: 20px;
       color: #333;
@@ -74,24 +87,11 @@
       font-size: 14px;
       font-weight: 500;
     }
-    .logo {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 20px;
-      background: #667eea;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 36px;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
   <div class="login-container">
-    <div class="logo">📚</div>
+    <div class="logo">Livros</div>
     <h2>Sistema de Biblioteca</h2>
     <p style="color: #777; margin-bottom: 25px;">Faça login para continuar</p>
 
@@ -118,17 +118,12 @@
           id="senha"
           name="senha" 
           placeholder="••••••" 
-          value="123"
           required 
         />
       </div>
 
       <button type="submit">Entrar no Sistema</button>
     </form>
-
-    <p style="margin-top: 20px; color: #999; font-size: 14px;">
-      Dica: Use <strong>admin@biblio.com</strong> / <strong>123</strong>
-    </p>
   </div>
 </body>
 </html>
