@@ -24,7 +24,7 @@
         </thead>
         <tbody>
           <% if (usuarios.length === 0) { %>
-            <tr><td colspan="5" style="text-align:center; color:#999;">Nenhum usuário cadastrado.</td></tr>
+            <tr><td colspan="5" style="text-align:center; color:#999;">Nenhum usuário.</td></tr>
           <% } else { %>
             <% usuarios.forEach(u => { %>
               <tr>
@@ -43,9 +43,10 @@
           <% } %>
         </tbody>
       </table>
-
-      <a href="/dashboard" class="voltar">Voltar</a>
     </div>
   </div>
+
+  <!-- Seta de voltar -->
+  <a href="/dashboard" class="back-arrow">Back</a>
 </body>
 </html>
