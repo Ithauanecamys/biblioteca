@@ -17,7 +17,7 @@ async function initDB() {
   try {
     console.log('Iniciando configuração do banco...');
 
-    // 1. Criar tabelas (se não existirem)
+    // 1. Criar tabelas
     await client.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
@@ -42,10 +42,11 @@ async function initDB() {
       );
     `);
 
-    // 2. Adicionar colunas faltantes (se não existirem)
+    // 2. Adicionar colunas faltantes
     await client.query(`
       ALTER TABLE livros ADD COLUMN IF NOT EXISTS exemplares INTEGER DEFAULT 1;
       ALTER TABLE emprestimos ADD COLUMN IF NOT EXISTS data_devolucao DATE;
+      ALTER TABLE emprestimos ADD COLUMN IF NOT EXISTS data_devolucao_prevista DATE;
     `);
 
     console.log('Tabelas e colunas verificadas/criadas com sucesso.');
@@ -161,14 +162,20 @@ app.post('/livros/excluir/:id', async (req, res) => {
 // === EMPRÉSTIMOS ===
 app.get('/emprestimos', async (req, res) => {
   const emprestimos = await db.query(`
-    SELECT e.id, u.nome AS usuario_nome, l.titulo AS livro_titulo, e.data_emprestimo, e.data_devolucao
+    SELECT 
+      e.id, 
+      u.nome AS usuario_nome, 
+      l.titulo AS livro_titulo, 
+      e.data_emprestimo, 
+      e.data_devolucao,
+      e.data_devolucao_prevista
     FROM emprestimos e
     JOIN usuarios u ON e.usuario_id = u.id
     JOIN livros l ON e.livro_id = l.id
-    ORDER BY e.id
+    ORDER BY e.data_emprestimo DESC
   `);
   const usuarios = await db.query('SELECT id, nome FROM usuarios');
-  const livros = await db.query('SELECT id, titulo, exemplares FROM livros WHERE exemplares > 0');
+  const livros = await db.query('SELECT id, titulo, autor, exemplares FROM livros WHERE exemplares > 0');
   res.render('emprestimos/lista', {
     emprestimos: emprestimos.rows,
     usuarios: usuarios.rows,
@@ -177,17 +184,35 @@ app.get('/emprestimos', async (req, res) => {
 });
 
 app.post('/emprestimos', async (req, res) => {
-  const { usuario_id, livro_id } = req.body;
-  const livro = await db.query('SELECT exemplares FROM livros WHERE id = $1', [livro_id]);
-  if (livro.rows[0] && livro.rows[0].exemplares > 0) {
-    await db.query('INSERT INTO emprestimos (usuario_id, livro_id) VALUES ($1, $2)', [usuario_id, livro_id]);
+  const { usuario_id, livro_id, data_emprestimo, data_devolucao_prevista } = req.body;
+
+  try {
+    // Verifica estoque
+    const livro = await db.query('SELECT exemplares FROM livros WHERE id = $1', [livro_id]);
+    if (livro.rows.length === 0 || livro.rows[0].exemplares <= 0) {
+      return res.redirect('/emprestimos?erro=estoque');
+    }
+
+    // Insere empréstimo com datas
+    await db.query(
+      `INSERT INTO emprestimos 
+       (usuario_id, livro_id, data_emprestimo, data_devolucao_prevista) 
+       VALUES ($1, $2, $3, $4)`,
+      [usuario_id, livro_id, data_emprestimo, data_devolucao_prevista]
+    );
+
+    // Reduz estoque
     await db.query('UPDATE livros SET exemplares = exemplares - 1 WHERE id = $1', [livro_id]);
+
+    res.redirect('/emprestimos');
+  } catch (err) {
+    console.error('Erro ao fazer empréstimo:', err);
+    res.redirect('/emprestimos?erro=servidor');
   }
-  res.redirect('/emprestimos');
 });
 
 app.post('/emprestimos/devolver/:id', async (req, res) => {
-  const emp = await db.query('SELECT livro_id FROM emprestimos WHERE id = $1', [req.params.id]);
+  const emp = await db.query('SELECT livro_id FROM emprestimos WHERE id = $1 AND data_devolucao IS NULL', [req.params.id]);
   if (emp.rows.length > 0) {
     await db.query('UPDATE emprestimos SET data_devolucao = CURRENT_DATE WHERE id = $1', [req.params.id]);
     await db.query('UPDATE livros SET exemplares = exemplares + 1 WHERE id = $1', [emp.rows[0].livro_id]);
@@ -196,9 +221,9 @@ app.post('/emprestimos/devolver/:id', async (req, res) => {
 });
 
 app.post('/emprestimos/excluir/:id', async (req, res) => {
-  const emp = await db.query('SELECT livro_id FROM emprestimos WHERE id = $1', [req.params.id]);
+  const emp = await db.query('SELECT livro_id, data_devolucao FROM emprestimos WHERE id = $1', [req.params.id]);
   await db.query('DELETE FROM emprestimos WHERE id = $1', [req.params.id]);
-  if (emp.rows.length > 0) {
+  if (emp.rows.length > 0 && !emp.rows[0].data_devolucao) {
     await db.query('UPDATE livros SET exemplares = exemplares + 1 WHERE id = $1', [emp.rows[0].livro_id]);
   }
   res.redirect('/emprestimos');
