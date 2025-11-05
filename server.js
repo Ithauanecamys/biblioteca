@@ -11,11 +11,10 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// === CRIAR TABELAS ===
+// === INICIAR BANCO ===
 async function initDB() {
-  const client = await db.connect();
   try {
-    await client.query(`
+    await db.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
@@ -40,51 +39,46 @@ async function initDB() {
         data_devolucao DATE
       );
     `);
-    console.log('Tabelas criadas ou verificadas.');
 
-    // Criar admin padrão se não existir
-    const admin = await client.query('SELECT * FROM usuarios WHERE email = $1', ['admin@bib.com']);
+    // Criar admin padrão
+    const admin = await db.query('SELECT * FROM usuarios WHERE email = $1', ['admin@biblio.com']);
     if (admin.rows.length === 0) {
-      await client.query(
+      await db.query(
         'INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)',
-        ['Admin', 'admin@bib.com', '123', 'admin']
+        ['Admin', 'admin@biblio.com', '123', 'admin']
       );
-      console.log('Admin criado: admin@bib.com / 123');
+      console.log('Admin criado: admin@biblio.com / 123');
     }
   } catch (err) {
-    console.error('Erro no banco:', err);
-  } finally {
-    client.release();
+    console.error('Erro ao iniciar banco:', err);
   }
 }
 initDB();
 
 // === ROTAS ===
 
-// Login (página)
+// Login
 app.get('/', (req, res) => {
-  res.render('login');
+  res.render('login', { erro: null });
 });
 
-// Processar login
 app.post('/login', async (req, res) => {
   const { email, senha } = req.body;
   try {
     const result = await db.query('SELECT * FROM usuarios WHERE email = $1 AND senha = $2', [email, senha]);
     if (result.rows.length > 0) {
-      res.send(`
-        <h1>Bem-vindo, ${result.rows[0].nome}!</h1>
-        <a href="/usuarios">Usuários</a> |
-        <a href="/livros">Livros</a> |
-        <a href="/emprestimos">Empréstimos</a> |
-        <a href="/">Sair</a>
-      `);
+      res.render('dashboard', { usuario: result.rows[0] });
     } else {
-      res.send('Login inválido. <a href="/">Tentar novamente</a>');
+      res.render('login', { erro: 'Email ou senha inválidos' });
     }
   } catch (err) {
-    res.send('Erro no login.');
+    res.render('login', { erro: 'Erro no servidor' });
   }
+});
+
+// Dashboard
+app.get('/dashboard', (req, res) => {
+  res.render('dashboard', { usuario: { nome: 'Visitante' } });
 });
 
 // === USUÁRIOS ===
@@ -99,10 +93,7 @@ app.get('/usuarios/novo', (req, res) => {
 
 app.post('/usuarios', async (req, res) => {
   const { nome, email, senha, tipo } = req.body;
-  await db.query(
-    'INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)',
-    [nome, email, senha, tipo || 'usuario']
-  );
+  await db.query('INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)', [nome, email, senha, tipo || 'usuario']);
   res.redirect('/usuarios');
 });
 
@@ -113,10 +104,7 @@ app.get('/usuarios/editar/:id', async (req, res) => {
 
 app.post('/usuarios/:id', async (req, res) => {
   const { nome, email, senha, tipo } = req.body;
-  await db.query(
-    'UPDATE usuarios SET nome=$1, email=$2, senha=$3, tipo=$4 WHERE id=$5',
-    [nome, email, senha, tipo, req.params.id]
-  );
+  await db.query('UPDATE usuarios SET nome=$1, email=$2, senha=$3, tipo=$4 WHERE id=$5', [nome, email, senha, tipo, req.params.id]);
   res.redirect('/usuarios');
 });
 
@@ -137,10 +125,7 @@ app.get('/livros/novo', (req, res) => {
 
 app.post('/livros', async (req, res) => {
   const { titulo, autor, ano, exemplares } = req.body;
-  await db.query(
-    'INSERT INTO livros (titulo, autor, ano, exemplares) VALUES ($1, $2, $3, $4)',
-    [titulo, autor, ano || null, exemplares || 1]
-  );
+  await db.query('INSERT INTO livros (titulo, autor, ano, exemplares) VALUES ($1, $2, $3, $4)', [titulo, autor, ano || null, exemplares || 1]);
   res.redirect('/livros');
 });
 
@@ -151,10 +136,7 @@ app.get('/livros/editar/:id', async (req, res) => {
 
 app.post('/livros/:id', async (req, res) => {
   const { titulo, autor, ano, exemplares } = req.body;
-  await db.query(
-    'UPDATE livros SET titulo=$1, autor=$2, ano=$3, exemplares=$4 WHERE id=$5',
-    [titulo, autor, ano, exemplares, req.params.id]
-  );
+  await db.query('UPDATE livros SET titulo=$1, autor=$2, ano=$3, exemplares=$4 WHERE id=$5', [titulo, autor, ano, exemplares, req.params.id]);
   res.redirect('/livros');
 });
 
@@ -166,7 +148,7 @@ app.post('/livros/excluir/:id', async (req, res) => {
 // === EMPRÉSTIMOS ===
 app.get('/emprestimos', async (req, res) => {
   const emprestimos = await db.query(`
-    SELECT e.id, u.nome AS usuario, l.titulo AS livro, e.data_emprestimo, e.data_devolucao
+    SELECT e.id, u.nome AS usuario_nome, l.titulo AS livro_titulo, e.data_emprestimo, e.data_devolucao
     FROM emprestimos e
     JOIN usuarios u ON e.usuario_id = u.id
     JOIN livros l ON e.livro_id = l.id
@@ -174,7 +156,6 @@ app.get('/emprestimos', async (req, res) => {
   `);
   const usuarios = await db.query('SELECT id, nome FROM usuarios');
   const livros = await db.query('SELECT id, titulo, exemplares FROM livros WHERE exemplares > 0');
-
   res.render('emprestimos/lista', {
     emprestimos: emprestimos.rows,
     usuarios: usuarios.rows,
@@ -185,7 +166,7 @@ app.get('/emprestimos', async (req, res) => {
 app.post('/emprestimos', async (req, res) => {
   const { usuario_id, livro_id } = req.body;
   const livro = await db.query('SELECT exemplares FROM livros WHERE id = $1', [livro_id]);
-  if (livro.rows[0].exemplares > 0) {
+  if (livro.rows[0] && livro.rows[0].exemplares > 0) {
     await db.query('INSERT INTO emprestimos (usuario_id, livro_id) VALUES ($1, $2)', [usuario_id, livro_id]);
     await db.query('UPDATE livros SET exemplares = exemplares - 1 WHERE id = $1', [livro_id]);
   }
@@ -194,8 +175,10 @@ app.post('/emprestimos', async (req, res) => {
 
 app.post('/emprestimos/devolver/:id', async (req, res) => {
   const emp = await db.query('SELECT livro_id FROM emprestimos WHERE id = $1', [req.params.id]);
-  await db.query('UPDATE emprestimos SET data_devolucao = CURRENT_DATE WHERE id = $1', [req.params.id]);
-  await db.query('UPDATE livros SET exemplares = exemplares + 1 WHERE id = $1', [emp.rows[0].livro_id]);
+  if (emp.rows.length > 0) {
+    await db.query('UPDATE emprestimos SET data_devolucao = CURRENT_DATE WHERE id = $1', [req.params.id]);
+    await db.query('UPDATE livros SET exemplares = exemplares + 1 WHERE id = $1', [emp.rows[0].livro_id]);
+  }
   res.redirect('/emprestimos');
 });
 
