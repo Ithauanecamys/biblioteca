@@ -78,7 +78,7 @@ body {
   text-align: center;
 }
 
-/* Botões */
+/* Botões de ação */
 .btn {
   padding: 8px 16px;
   border: none;
@@ -91,7 +91,7 @@ body {
   transition: all 0.3s;
 }
 
-.btn-add { background: #27ae60; color: white; }
+.btn-add { background: #27ae60; color: white; margin-bottom: 15px; }
 .btn-edit { background: #3498db; color: white; }
 .btn-delete { background: #e74c3c; color: white; }
 .btn-return { background: #f39c12; color: white; }
@@ -101,7 +101,7 @@ body {
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-/* Tabela */
+/* Tabelas */
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -137,7 +137,7 @@ body {
 .status.pendente { background: #e74c3c; color: white; }
 .status.devolvido { background: #27ae60; color: white; }
 
-/* Seta de voltar fixa */
+/* === SETA FIXA NO CANTO INFERIOR ESQUERDO (SEM TEXTO) === */
 .back-arrow {
   position: fixed;
   bottom: 20px;
@@ -158,21 +158,32 @@ body {
   text-decoration: none;
 }
 
+/* Ícone de seta (sem texto) */
+.back-arrow::before {
+  content: "Left Arrow";
+}
+
+/* Efeito hover */
 .back-arrow:hover {
   background: #5a6fd8;
   transform: scale(1.1);
   box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
-/* Seta sem texto */
-.back-arrow::before {
-  content: "Left Arrow";
-  font-size: 24px;
-}
-
 /* Responsivo */
 @media (max-width: 768px) {
-  .nav-buttons { flex-direction: column; align-items: center; }
-  .nav-btn { width: 80%; }
-  .back-arrow { width: 45px; height: 45px; font-size: 20px; }
+  .nav-buttons { 
+    flex-direction: column; 
+    align-items: center; 
+  }
+  .nav-btn { 
+    width: 80%; 
+  }
+  .back-arrow { 
+    width: 45px; 
+    height: 45px; 
+    font-size: 20px; 
+    bottom: 15px;
+    left: 15px;
+  }
 }
