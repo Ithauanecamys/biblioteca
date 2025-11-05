@@ -9,94 +9,123 @@
 <body>
   <div class="container">
     <div class="card">
-      <h2>Novo Empréstimo</h2>
+      <h2>Empréstimos</h2>
 
-      <!-- Formulário com Datas -->
-      <div style="background:#f8f9fa; padding:25px; border-radius:12px; margin-bottom:25px;">
-        <form method="POST" action="/emprestimos">
-          <div style="display:grid; gap:18px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
-            
-            <!-- Usuário -->
-            <div>
-              <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Usuário</label>
-              <select name="usuario_id" required style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;">
-                <option value="">Selecione o usuário</option>
-                <% usuarios.forEach(u => { %>
-                  <option value="<%= u.id %>"><%= u.nome %></option>
-                <% }) %>
-              </select>
+      <!-- ================== FORMULÁRIO: SÓ PARA ADMIN ================== -->
+      <% if (usuarioLogado.tipo === 'admin') { %>
+        <div style="background:#f8f9fa; padding:25px; border-radius:12px; margin-bottom:25px;">
+          <h3 style="margin-bottom:20px; color:#333;">Novo Empréstimo</h3>
+          <form method="POST" action="/emprestimos">
+            <div style="display:grid; gap:18px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+              
+              <!-- Usuário -->
+              <div>
+                <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Usuário</label>
+                <select name="usuario_id" required style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;">
+                  <option value="">Selecione...</option>
+                  <% usuarios.forEach(u => { %>
+                    <option value="<%= u.id %>"><%= u.nome %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <!-- Livro -->
+              <div>
+                <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Livro Disponível</label>
+                <select name="livro_id" required style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;">
+                  <option value="">Selecione...</option>
+                  <% livros.forEach(l => { %>
+                    <option value="<%= l.id %>">
+                      <%= l.titulo %> — <%= l.exemplares %> em estoque
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <!-- Data Empréstimo -->
+              <div>
+                <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Data do Empréstimo</label>
+                <input 
+                  type="date" 
+                  name="data_emprestimo" 
+                  required 
+                  style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
+                  value="<%= new Date().toISOString().split('T')[0] %>"
+                />
+              </div>
+
+              <!-- Data Prevista de Devolução -->
+              <div>
+                <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Previsão de Devolução</label>
+                <input 
+                  type="date" 
+                  name="data_devolucao_prevista" 
+                  required 
+                  style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
+                  min="<%= new Date().toISOString().split('T')[0] %>"
+                />
+              </div>
+
             </div>
 
-            <!-- Livro -->
-            <div>
-              <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Livro Disponível</label>
-              <select name="livro_id" required style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;">
-                <option value="">Selecione o livro</option>
-                <% livros.forEach(l => { %>
-                  <option value="<%= l.id %>">
-                    <%= l.titulo %> — <%= l.exemplares %> em estoque
-                  </option>
-                <% }) %>
-              </select>
+            <div style="margin-top:20px; text-align:center;">
+              <button type="submit" class="btn" style="background:#27ae60; color:white; padding:14px 30px; font-size:16px; font-weight:600;">
+                Confirmar Empréstimo
+              </button>
             </div>
+          </form>
+        </div>
+      <% } else { %>
+        <!-- Mensagem para usuário comum -->
+        <p style="background:#e8f5e8; color:#27ae60; padding:15px; border-radius:8px; margin-bottom:25px; font-weight:500;">
+          Você pode visualizar apenas os seus empréstimos abaixo.
+        </p>
+      <% } %>
 
-            <!-- Data Empréstimo -->
-            <div>
-              <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Data do Empréstimo</label>
-              <input 
-                type="date" 
-                name="data_emprestimo" 
-                required 
-                style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
-                value="<%= new Date().toISOString().split('T')[0] %>"
-              />
-            </div>
+      <!-- ================== TABELA DE EMPRÉSTIMOS ================== -->
+      <h3 style="margin-bottom:15px; color:#333;">
+        <% if (usuarioLogado.tipo === 'admin') { %>
+          Todos os Empréstimos
+        <% } else { %>
+          Seus Empréstimos
+        <% } %>
+      </h3>
 
-            <!-- Data Devolução -->
-            <div>
-              <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Data Prevista de Devolução</label>
-              <input 
-                type="date" 
-                name="data_devolucao_prevista" 
-                required 
-                style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
-                min="<%= new Date().toISOString().split('T')[0] %>"
-              />
-            </div>
-
-          </div>
-
-          <div style="margin-top:20px; text-align:center;">
-            <button type="submit" class="btn" style="background:#27ae60; color:white; padding:14px 30px; font-size:16px; font-weight:600;">
-              Confirmar Empréstimo
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Tabela de Empréstimos -->
-      <h2 style="margin-bottom:15px;">Empréstimos Realizados</h2>
       <table class="table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Usuário</th>
+            <% if (usuarioLogado.tipo === 'admin') { %>
+              <th>ID</th>
+              <th>Usuário</th>
+            <% } %>
             <th>Livro</th>
             <th>Empréstimo</th>
             <th>Previsão</th>
             <th>Devolvido em</th>
             <th>Status</th>
-            <th>Ações</th>
+            <% if (usuarioLogado.tipo === 'admin') { %>
+              <th>Ações</th>
+            <% } %>
           </tr>
         </thead>
         <tbody>
           <% if (emprestimos.length === 0) { %>
-            <tr><td colspan="8" style="text-align:center; color:#999; padding:25px;">Nenhum empréstimo registrado.</td></tr>
+            <tr>
+              <td colspan="<%= usuarioLogado.tipo === 'admin' ? 8 : 6 %>" style="text-align:center; color:#999; padding:25px;">
+                <% if (usuarioLogado.tipo === 'admin') { %>
+                  Nenhum empréstimo registrado.
+                <% } else { %>
+                  Você ainda não possui empréstimos.
+                <% } %>
+              </td>
+            </tr>
           <% } else { %>
             <% emprestimos.forEach(e => { %>
               <tr>
-                <td><strong>#<%= e.id %></strong></td>
-                <td><%= e.usuario_nome %></td>
+                <% if (usuarioLogado.tipo === 'admin') { %>
+                  <td><strong>#<%= e.id %></strong></td>
+                  <td><%= e.usuario_nome %></td>
+                <% } %>
                 <td><strong><%= e.livro_titulo %></strong></td>
                 <td><span style="color:#27ae60;"><%= new Date(e.data_emprestimo).toLocaleDateString('pt-BR') %></span></td>
                 <td><em style="color:#3498db;"><%= e.data_devolucao_prevista ? new Date(e.data_devolucao_prevista).toLocaleDateString('pt-BR') : '—' %></em></td>
@@ -112,16 +141,18 @@
                     <%= e.data_devolucao ? 'Devolvido' : 'Ativo' %>
                   </span>
                 </td>
-                <td>
-                  <% if (!e.data_devolucao) { %>
-                    <form method="POST" action="/emprestimos/devolver/<%= e.id %>" style="display:inline;">
-                      <button type="submit" class="btn btn-return">Devolver</button>
+                <% if (usuarioLogado.tipo === 'admin') { %>
+                  <td>
+                    <% if (!e.data_devolucao) { %>
+                      <form method="POST" action="/emprestimos/devolver/<%= e.id %>" style="display:inline;">
+                        <button type="submit" class="btn btn-return">Devolver</button>
+                      </form>
+                    <% } %>
+                    <form method="POST" action="/emprestimos/excluir/<%= e.id %>" style="display:inline;">
+                      <button type="submit" class="btn btn-delete" onclick="return confirm('Excluir?')">Excluir</button>
                     </form>
-                  <% } %>
-                  <form method="POST" action="/emprestimos/excluir/<%= e.id %>" style="display:inline;">
-                    <button type="submit" class="btn btn-delete" onclick="return confirm('Excluir?')">Excluir</button>
-                  </form>
-                </td>
+                  </td>
+                <% } %>
               </tr>
             <% }) %>
           <% } %>
