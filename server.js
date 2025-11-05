@@ -13,8 +13,12 @@ app.use(express.json());
 
 // === INICIAR BANCO ===
 async function initDB() {
+  const client = await db.connect();
   try {
-    await db.query(`
+    console.log('Iniciando configuração do banco...');
+
+    // 1. Criar tabelas (se não existirem)
+    await client.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
@@ -27,30 +31,38 @@ async function initDB() {
         id SERIAL PRIMARY KEY,
         titulo VARCHAR(200) NOT NULL,
         autor VARCHAR(100) NOT NULL,
-        ano INTEGER,
-        exemplares INTEGER DEFAULT 1
+        ano INTEGER
       );
 
       CREATE TABLE IF NOT EXISTS emprestimos (
         id SERIAL PRIMARY KEY,
         usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
         livro_id INTEGER REFERENCES livros(id) ON DELETE CASCADE,
-        data_emprestimo DATE DEFAULT CURRENT_DATE,
-        data_devolucao DATE
+        data_emprestimo DATE DEFAULT CURRENT_DATE
       );
     `);
 
-    // Criar admin padrão
-    const admin = await db.query('SELECT * FROM usuarios WHERE email = $1', ['admin@biblio.com']);
+    // 2. Adicionar colunas faltantes (se não existirem)
+    await client.query(`
+      ALTER TABLE livros ADD COLUMN IF NOT EXISTS exemplares INTEGER DEFAULT 1;
+      ALTER TABLE emprestimos ADD COLUMN IF NOT EXISTS data_devolucao DATE;
+    `);
+
+    console.log('Tabelas e colunas verificadas/criadas com sucesso.');
+
+    // 3. Criar admin padrão
+    const admin = await client.query('SELECT * FROM usuarios WHERE email = $1', ['admin@biblio.com']);
     if (admin.rows.length === 0) {
-      await db.query(
+      await client.query(
         'INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)',
         ['Admin', 'admin@biblio.com', '123', 'admin']
       );
       console.log('Admin criado: admin@biblio.com / 123');
     }
   } catch (err) {
-    console.error('Erro ao iniciar banco:', err);
+    console.error('Erro ao configurar banco:', err);
+  } finally {
+    client.release();
   }
 }
 initDB();
@@ -72,6 +84,7 @@ app.post('/login', async (req, res) => {
       res.render('login', { erro: 'Email ou senha inválidos' });
     }
   } catch (err) {
+    console.error('Erro no login:', err);
     res.render('login', { erro: 'Erro no servidor' });
   }
 });
@@ -84,11 +97,11 @@ app.get('/dashboard', (req, res) => {
 // === USUÁRIOS ===
 app.get('/usuarios', async (req, res) => {
   const result = await db.query('SELECT * FROM usuarios ORDER BY id');
-  res.render('usuarios/lista', { usuarios: result.rows }); // lista.ejs
+  res.render('usuarios/lista', { usuarios: result.rows });
 });
 
 app.get('/usuarios/novo', (req, res) => {
-  res.render('usuarios/form', { usuario: {}, action: '/usuarios' }); // form.ejs
+  res.render('usuarios/form', { usuario: {}, action: '/usuarios' });
 });
 
 app.post('/usuarios', async (req, res) => {
@@ -99,7 +112,7 @@ app.post('/usuarios', async (req, res) => {
 
 app.get('/usuarios/editar/:id', async (req, res) => {
   const result = await db.query('SELECT * FROM usuarios WHERE id = $1', [req.params.id]);
-  res.render('usuarios/form', { usuario: result.rows[0], action: `/usuarios/${req.params.id}` }); // form.ejs
+  res.render('usuarios/form', { usuario: result.rows[0], action: `/usuarios/${req.params.id}` });
 });
 
 app.post('/usuarios/:id', async (req, res) => {
@@ -116,11 +129,11 @@ app.post('/usuarios/excluir/:id', async (req, res) => {
 // === LIVROS ===
 app.get('/livros', async (req, res) => {
   const result = await db.query('SELECT * FROM livros');
-  res.render('livros/lista', { livros: result.rows }); // lista.ejs
+  res.render('livros/lista', { livros: result.rows });
 });
 
 app.get('/livros/novo', (req, res) => {
-  res.render('livros/form', { livro: {}, action: '/livros' }); // form.ejs
+  res.render('livros/form', { livro: {}, action: '/livros' });
 });
 
 app.post('/livros', async (req, res) => {
@@ -131,7 +144,7 @@ app.post('/livros', async (req, res) => {
 
 app.get('/livros/editar/:id', async (req, res) => {
   const result = await db.query('SELECT * FROM livros WHERE id = $1', [req.params.id]);
-  res.render('livros/form', { livro: result.rows[0], action: `/livros/${req.params.id}` }); // form.ejs
+  res.render('livros/form', { livro: result.rows[0], action: `/livros/${req.params.id}` });
 });
 
 app.post('/livros/:id', async (req, res) => {
@@ -160,7 +173,7 @@ app.get('/emprestimos', async (req, res) => {
     emprestimos: emprestimos.rows,
     usuarios: usuarios.rows,
     livros: livros.rows
-  }); // lista.ejs
+  });
 });
 
 app.post('/emprestimos', async (req, res) => {
