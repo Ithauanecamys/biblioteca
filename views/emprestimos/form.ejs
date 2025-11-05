@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Novo Empréstimo</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body { background: linear-gradient(135deg, #667eea, #764ba2); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
+    h1 { color: #333; text-align: center; margin-bottom: 25px; }
+    .input-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; }
+    select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+    button { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    .voltar { display: block; text-align: center; margin-top: 15px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Novo Empréstimo</h1>
+    <form method="POST" action="/emprestimos">
+      <div class="input-group">
+        <label>Usuário</label>
+        <select name="usuario_id" required>
+          <option value="">Selecione...</option>
+          <% usuarios.forEach(u => { %>
+            <option value="<%= u.id %>"><%= u.nome %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Livro</label>
+        <select name="livro_id" required>
+          <option value="">Selecione...</option>
+          <% livros.forEach(l => { %>
+            <option value="<%= l.id %>"><%= l.titulo %> (<%= l.exemplares %> disp.)</option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit">Fazer Empréstimo</button>
+    </form>
+    <a href="/emprestimos" class="voltar">Voltar</a>
+  </div>
+</body>
+</html>
