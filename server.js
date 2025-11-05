@@ -42,7 +42,6 @@ app.post('/login', async (req, res) => {
 
 // === ROTAS PARA LIVROS ===
 app.get('/livros/listar', (req, res) => {
-  // DADOS DE TESTE (depois vem do banco)
   const livros = [
     { id: 1, titulo: 'Dom Casmurro', autor: 'Machado de Assis', ano: 1899, status: 'Disponível' },
     { id: 2, titulo: '1984', autor: 'George Orwell', ano: 1949, status: 'Emprestado' },
@@ -68,12 +67,10 @@ app.get('/emprestimos/cadastrar', (req, res) => {
   res.render('emprestimos/cadastrar');
 });
 
-// ROTA PARA EDITAR EMPRÉSTIMO
 app.get('/emprestimos/editar', (req, res) => {
   res.render('emprestimos/editar');
 });
 
-// POST para salvar alterações no empréstimo
 app.post('/emprestimos/editar', (req, res) => {
   res.redirect('/emprestimos/listar');
 });
