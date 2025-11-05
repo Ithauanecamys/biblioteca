@@ -1,7 +1,5 @@
 <%- include('../partials/header') %>
 
-<h1>Listar Livros</h1>
-
 <table border="1" style="width:100%; text-align:center; margin:20px 0;">
   <tr>
     <th>ID</th>
@@ -11,22 +9,16 @@
     <th>Status</th>
     <th>Ações</th>
   </tr>
-  <% if (livros && livros.length > 0) { %>
-    <% livros.forEach(l => { %>
-      <tr>
-        <td><%= l.id %></td>
-        <td><%= l.titulo %></td>
-        <td><%= l.autor %></td>
-        <td><%= l.ano %></td>
-        <td><%= l.status %></td>
-        <td>
-          <a href="/livros/editar">Editar</a>
-        </td>
-      </tr>
-    <% }) %>
-  <% } else { %>
-    <tr><td colspan="6">Nenhum livro cadastrado.</td></tr>
-  <% } %>
+  <% livros.forEach(l => { %>
+    <tr>
+      <td><%= l.id %></td>
+      <td><%= l.titulo %></td>
+      <td><%= l.autor %></td>
+      <td><%= l.ano %></td>
+      <td><%= l.status %></td>
+      <td><a href="/livros/editar">Editar</a></td>
+    </tr>
+  <% }) %>
 </table>
 
 <a href="/livros/cadastrar">Cadastrar Novo Livro</a>
