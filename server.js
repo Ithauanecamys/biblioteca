@@ -68,11 +68,12 @@ async function criarTabelas() {
 // Inicia o banco
 iniciarBanco();
 
-// ROTAS
+// ROTA: Página de login
 app.get('/login', (req, res) => {
   res.render('login');
 });
 
+// ROTA: Processar login
 app.post('/login', async (req, res) => {
   const { email, senha } = req.body;
   try {
@@ -92,6 +93,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// ROTA: Página do admin
 app.get('/admin', async (req, res) => {
   try {
     const livros = await pool.query('SELECT * FROM livros');
@@ -101,6 +103,7 @@ app.get('/admin', async (req, res) => {
   }
 });
 
+// ROTA: Página do usuário
 app.get('/usuario', async (req, res) => {
   try {
     const livros = await pool.query('SELECT * FROM livros WHERE disponivel = true');
@@ -110,7 +113,39 @@ app.get('/usuario', async (req, res) => {
   }
 });
 
-// Inicia o servidor
+// ROTA TEMPORÁRIA: Cadastrar Admin (use apenas na primeira vez)
+app.get('/cadastro-admin', (req, res) => {
+  res.send(`
+    <h2>Cadastrar Admin</h2>
+    <form action="/cadastro-admin" method="POST">
+      <input type="text" name="nome" placeholder="Nome" value="Admin" required><br><br>
+      <input type="email" name="email" placeholder="Email" value="admin@biblio.com" required><br><br>
+      <input type="password" name="senha" placeholder="Senha" value="123" required><br><br>
+      <input type="text" name="tipo" placeholder="Tipo" value="admin" required><br><br>
+      <button type="submit">Cadastrar Admin</button>
+    </form>
+    <br><a href="/login">Voltar ao Login</a>
+  `);
+});
+
+app.post('/cadastro-admin', async (req, res) => {
+  const { nome, email, senha, tipo } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)',
+      [nome, email, senha, tipo]
+    );
+    res.send('Admin cadastrado com sucesso! <a href="/login">Fazer login</a>');
+  } catch (err) {
+    if (err.code === '23505') {
+      res.send('Erro: Este email já está cadastrado. <a href="/login">Fazer login</a>');
+    } else {
+      res.send('Erro: ' + err.message + ' <a href="/cadastro-admin">Tentar novamente</a>');
+    }
+  }
+});
+
+// INÍCIO DO SERVIDOR
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
