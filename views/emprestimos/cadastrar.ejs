@@ -1,25 +1,23 @@
-<%- include('../partials/header') %> <% title = 'Novo Empréstimo' %>
+<%- include('../partials/header') %>
 
-<form method="POST" action="/emprestimos/cadastrar?sessao=logado">
-  <label>Usuário:</label><br>
-  <select name="usuario_id" required>
-    <% usuarios.forEach(u => { %>
-      <option value="<%= u.id %>"><%= u.nome %></option>
-    <% }) %>
-  </select><br><br>
+<h1>Cadastrar Empréstimo</h1>
 
-  <label>Livro Disponível:</label><br>
-  <select name="livro_id" required>
-    <% livros.forEach(l => { %>
-      <option value="<%= l.id %>"><%= l.titulo %></option>
-    <% }) %>
-  </select><br><br>
+<form method="POST" action="/emprestimos/cadastrar">
+  <label>Livro:</label>
+  <input type="text" name="livro" required /><br><br>
 
-  <label>Data:</label><br>
+  <label>Usuário:</label>
+  <input type="text" name="usuario" required /><br><br>
+
+  <label>Data Empréstimo:</label>
   <input type="date" name="data_emprestimo" required /><br><br>
 
-  <button>Realizar Empréstimo</button>
-  <a href="/emprestimos?sessao=logado">Cancelar</a>
+  <label>Data Devolução:</label>
+  <input type="date" name="data_devolucao" /><br><br>
+
+  <button type="submit">Cadastrar</button>
 </form>
+
+<a href="/emprestimos/listar">Voltar</a>
 
 <%- include('../partials/footer') %>
