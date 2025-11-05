@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><title><%= usuario.id ? 'Editar' : 'Novo' %> Usuário</title><link rel="stylesheet" href="/style.css"></head><body>
+  <div class="login-container">
+    <h1><%= usuario.id ? 'Editar' : 'Novo' %> Usuário</h1>
+    <form method="POST" action="<%= action %>">
+      <div class="input-group">
+        <label>Nome</label>
+        <input type="text" name="nome" value="<%= usuario.nome || '' %>" required />
+      </div>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" name="email" value="<%= usuario.email || '' %>" required />
+      </div>
+      <div class="input-group">
+        <label>Senha</label>
+        <input type="password" name="senha" placeholder="Nova senha" required />
+      </div>
+      <div class="input-group">
+        <label>Tipo</label>
+        <select name="tipo" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+          <option value="usuario" <%= (usuario.tipo || 'usuario') === 'usuario' ? 'selected' : '' %>>Usuário</option>
+          <option value="admin" <%= usuario.tipo === 'admin' ? 'selected' : '' %>>Admin</option>
+        </select>
+      </div>
+      <button type="submit">Salvar</button>
+    </form>
+    <a href="/usuarios">Voltar</a>
+  </div>
+</body></html>
