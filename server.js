@@ -2,30 +2,37 @@ const express = require('express');
 const { Pool } = require('pg');
 const bodyParser = require('body-parser');
 const path = require('path');
+
 const app = express();
 
+// Configurações do Express
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// CONEXÃO COM POSTGRESQL DO RENDER
+// CONEXÃO COM POSTGRESQL (Render ou local)
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/biblioteca',
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
-// TESTE DE CONEXÃO
-pool.connect((err) => {
-  if (err) {
-    console.error('ERRO AO CONECTAR POSTGRESQL:', err);
+// Função principal: testa conexão e cria tabelas
+async function iniciarBanco() {
+  try {
+    // Testa conexão
+    await pool.query('SELECT NOW()');
+    console.log('POSTGRESQL CONECTADO COM SUCESSO!');
+
+    // Cria tabelas
+    await criarTabelas();
+  } catch (err) {
+    console.error('ERRO AO CONECTAR AO BANCO:', err.stack);
     process.exit(1);
   }
-  console.log('POSTGRESQL CONECTADO COM SUCESSO!');
-  criarTabelas();
-});
+}
 
-// CRIAR TABELAS AUTOMATICAMENTE
+// Cria tabelas automaticamente
 async function criarTabelas() {
   try {
     await pool.query(`
@@ -36,6 +43,7 @@ async function criarTabelas() {
         senha VARCHAR(50),
         tipo VARCHAR(20)
       );
+
       CREATE TABLE IF NOT EXISTS livros (
         id SERIAL PRIMARY KEY,
         titulo VARCHAR(200),
@@ -43,6 +51,7 @@ async function criarTabelas() {
         ano INTEGER,
         disponivel BOOLEAN DEFAULT true
       );
+
       CREATE TABLE IF NOT EXISTS emprestimos (
         id SERIAL PRIMARY KEY,
         usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -52,103 +61,57 @@ async function criarTabelas() {
     `);
     console.log('TABELAS CRIADAS OU JÁ EXISTEM!');
   } catch (err) {
-    console.error('ERRO AO CRIAR TABELAS:', err);
+    console.error('ERRO AO CRIAR TABELAS:', err.stack);
   }
 }
 
-// AUTENTICAÇÃO SIMPLES
-const auth = (req, res, next) => {
-  if (req.query.sessao === 'logado') return next();
-  res.redirect('/login');
-};
+// Inicia o banco
+iniciarBanco();
 
 // ROTAS
-app.get('/login', (req, res) => res.render('login'));
+app.get('/login', (req, res) => {
+  res.render('login');
+});
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, senha } = req.body;
-  if (email === 'admin@biblio.com' && senha === '123') {
-    res.redirect('/usuarios?sessao=logado');
-  } else {
-    res.send('Login inválido. <a href="/login">Tentar novamente</a>');
+  try {
+    const result = await pool.query('SELECT * FROM usuarios WHERE email = $1 AND senha = $2', [email, senha]);
+    if (result.rows.length > 0) {
+      const usuario = result.rows[0];
+      if (usuario.tipo === 'admin') {
+        res.redirect('/admin');
+      } else {
+        res.redirect('/usuario');
+      }
+    } else {
+      res.send('Credenciais inválidas. <a href="/login">Voltar</a>');
+    }
+  } catch (err) {
+    res.send('Erro no login: ' + err.message);
   }
 });
 
-// USUÁRIOS
-app.get('/usuarios', auth, async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM usuarios');
-  res.render('usuarios/listar', { usuarios: rows });
-});
-
-app.post('/usuarios/cadastrar', auth, async (req, res) => {
-  const { nome, email, senha, tipo } = req.body;
-  await pool.query('INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)', [nome, email, senha, tipo]);
-  res.redirect('/usuarios?sessao=logado');
-});
-
-// LIVROS
-app.get('/livros', auth, async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM livros');
-  res.render('livros/listar', { livros: rows });
-});
-
-app.post('/livros/cadastrar', auth, async (req, res) => {
-  const { titulo, autor, ano } = req.body;
-  await pool.query('INSERT INTO livros (titulo, autor, ano) VALUES ($1, $2, $3)', [titulo, autor, ano]);
-  res.redirect('/livros?sessao=logado');
-});
-
-// EMPRÉSTIMOS
-app.get('/emprestimos', auth, async (req, res) => {
-  const emprestimos = await pool.query(`
-    SELECT e.id, u.nome AS usuario, l.titulo AS livro, e.data_emprestimo,
-           e.data_emprestimo + INTERVAL '30 days' AS data_devolucao,
-           CASE 
-             WHEN CURRENT_DATE > (e.data_emprestimo + INTERVAL '30 days') 
-             THEN EXTRACT(DAY FROM (CURRENT_DATE - (e.data_emprestimo + INTERVAL '30 days'))) * 3.90
-             ELSE 0 
-           END AS multa
-    FROM emprestimos e
-    JOIN usuarios u ON e.usuario_id = u.id
-    JOIN livros l ON e.livro_id = l.id
-  `);
-  const usuarios = await pool.query('SELECT id, nome FROM usuarios');
-  const livros = await pool.query('SELECT id, titulo, disponivel FROM livros');
-  res.render('emprestimos/listar', { 
-    emprestimos: emprestimos.rows, 
-    usuarios: usuarios.rows, 
-    livros: livros.rows 
-  });
-});
-
-app.post('/emprestimos/cadastrar', auth, async (req, res) => {
-  const { usuario_id, livro_id, data_emprestimo } = req.body;
-  const livro = await pool.query('SELECT disponivel FROM livros WHERE id = $1', [livro_id]);
-  if (livro.rows[0]?.disponivel) {
-    await pool.query('INSERT INTO emprestimos (usuario_id, livro_id, data_emprestimo) VALUES ($1, $2, $3)', [usuario_id, livro_id, data_emprestimo]);
-    await pool.query('UPDATE livros SET disponivel = false WHERE id = $1', [livro_id]);
-    res.redirect('/emprestimos?sessao=logado');
-  } else {
-    res.send('Livro não disponível! <a href="/emprestimos?sessao=logado">Voltar</a>');
+app.get('/admin', async (req, res) => {
+  try {
+    const livros = await pool.query('SELECT * FROM livros');
+    res.render('admin', { livros: livros.rows });
+  } catch (err) {
+    res.send('Erro: ' + err.message);
   }
 });
 
-app.get('/emprestimos/devolver/:id', auth, async (req, res) => {
-  const { rows } = await pool.query('SELECT livro_id FROM emprestimos WHERE id = $1', [req.params.id]);
-  if (rows.length > 0) {
-    const livro_id = rows[0].livro_id;
-    await pool.query('DELETE FROM emprestimos WHERE id = $1', [req.params.id]);
-    await pool.query('UPDATE livros SET disponivel = true WHERE id = $1', [livro_id]);
+app.get('/usuario', async (req, res) => {
+  try {
+    const livros = await pool.query('SELECT * FROM livros WHERE disponivel = true');
+    res.render('usuario', { livros: livros.rows });
+  } catch (err) {
+    res.send('Erro: ' + err.message);
   }
-  res.redirect('/emprestimos?sessao=logado');
 });
 
-// INICIAR SERVIDOR
+// Inicia o servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
-  console.log(`Acesse: https://biblioteca-mysql.onrender.com/login`);
 });
-
-
-Trocar para PostgreSQL + multa de 30 dias
