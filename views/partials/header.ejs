@@ -5,19 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Biblioteca - <%= typeof title !== 'undefined' ? title : 'Sistema' %></title>
   <link rel="stylesheet" href="/style.css">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fa; }
+    nav {
+      background: #2c3e50;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    nav a {
+      color: white;
+      margin: 0 20px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 5px;
+      transition: 0.3s;
+    }
+    nav a:hover { background: #34495e; }
+    .container { padding: 30px; min-height: 70vh; }
+    h1 { color: #2c3e50; text-align: center; }
+  </style>
 </head>
 <body>
   <% if (typeof title !== 'undefined' && title !== 'Login') { %>
   <nav>
-    <a href="/usuarios?sessao=logado">👥 Usuários</a> |
-    <a href="/livros?sessao=logado">📚 Livros</a> |
-    <a href="/emprestimos?sessao=logado">📖 Empréstimos</a> |
-    <a href="/login">🚪 Sair</a>
+    <a href="/usuarios/listar">Usuários</a>
+    <a href="/livros/listar">Livros</a>
+    <a href="/emprestimos/listar">Empréstimos</a>
+    <a href="/">Sair</a>
   </nav>
   <% } %>
-  
+
   <div class="container">
     <% if (typeof title !== 'undefined') { %>
       <h1><%= title %></h1>
     <% } %>
-    
