@@ -75,3 +75,94 @@
             </div>
           </form>
         </div>
+      <% } else { %>
+        <p style="background:#e8f5e8; color:#27ae60; padding:15px; border-radius:8px; margin-bottom:25px; font-weight:500; text-align:center;">
+          Você pode visualizar apenas os seus empréstimos abaixo.
+        </p>
+      <% } %>
+
+      <!-- ================== TABELA DE EMPRÉSTIMOS ================== -->
+      <h3 style="margin-bottom:15px; color:#333; text-align:center;">
+        <% if (usuarioLogado.tipo === 'admin') { %>
+          Todos os Empréstimos
+        <% } else { %>
+          Seus Empréstimos
+        <% } %>
+      </h3>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <% if (usuarioLogado.tipo === 'admin') { %>
+              <th>ID</th>
+              <th>Usuário</th>
+            <% } %>
+            <th>Livro</th>
+            <th>Empréstimo</th>
+            <th>Previsão</th>
+            <th>Devolvido em</th>
+            <th>Status</th>
+            <% if (usuarioLogado.tipo === 'admin') { %>
+              <th>Ações</th>
+            <% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (emprestimos.length === 0) { %>
+            <tr>
+              <td colspan="<%= usuarioLogado.tipo === 'admin' ? 8 : 6 %>" style="text-align:center; color:#999; padding:25px;">
+                <% if (usuarioLogado.tipo === 'admin') { %>
+                  Nenhum empréstimo registrado.
+                <% } else { %>
+                  Você ainda não possui empréstimos.
+                <% } %>
+              </td>
+            </tr>
+          <% } else { %>
+            <% emprestimos.forEach(e => { %>
+              <tr>
+                <% if (usuarioLogado.tipo === 'admin') { %>
+                  <td><strong>#<%= e.id %></strong></td>
+                  <td><%= e.usuario_nome %></td>
+                <% } %>
+                <td><strong><%= e.livro_titulo %></strong></td>
+                <td><span style="color:#27ae60; font-weight:600;"><%= new Date(e.data_emprestimo).toLocaleDateString('pt-BR') %></span></td>
+                <td><em style="color:#3498db;"><%= e.data_devolucao_prevista ? new Date(e.data_devolucao_prevista).toLocaleDateString('pt-BR') : '—' %></em></td>
+                <td>
+                  <% if (e.data_devolucao) { %>
+                    <span style="color:#7f8c8d;"><%= new Date(e.data_devolucao).toLocaleDateString('pt-BR') %></span>
+                  <% } else { %>
+                    <em style="color:#e67e22;">Pendente</em>
+                  <% } %>
+                </td>
+                <td>
+                  <span class="status <%= e.data_devolucao ? 'devolvido' : 'pendente' %>">
+                    <%= e.data_devolucao ? 'Devolvido' : 'Ativo' %>
+                  </span>
+                </td>
+                <% if (usuarioLogado.tipo === 'admin') { %>
+                  <td>
+                    <% if (!e.data_devolucao) { %>
+                      <form method="POST" action="/emprestimos/devolver/<%= e.id %>" style="display:inline;">
+                        <button type="submit" class="btn btn-return">Devolver</button>
+                      </form>
+                    <% } %>
+                    <form method="POST" action="/emprestimos/excluir/<%= e.id %>" style="display:inline;">
+                      <button type="submit" class="btn btn-delete" onclick="return confirm('Excluir empréstimo?')">
+                        Excluir
+                      </button>
+                    </form>
+                  </td>
+                <% } %>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Seta fixa no canto inferior esquerdo (sem texto) -->
+  <a href="/dashboard" class="back-arrow" title="Voltar ao Dashboard"></a>
+</body>
+</html>
