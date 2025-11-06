@@ -10,7 +10,11 @@
   <div class="container">
     <div class="card">
       <h2>Livros</h2>
-      <a href="/livros/novo" class="btn btn-add">+ Novo Livro</a>
+
+      <!-- BOTÃO DE NOVO LIVRO: SÓ PARA ADMIN -->
+      <% if (usuarioLogado.tipo === 'admin') { %>
+        <a href="/livros/novo" class="btn btn-add">+ Novo Livro</a>
+      <% } %>
 
       <table class="table">
         <thead>
@@ -20,26 +24,40 @@
             <th>Autor</th>
             <th>Ano</th>
             <th>Exemplares</th>
-            <th>Ações</th>
+            <% if (usuarioLogado.tipo === 'admin') { %>
+              <th>Ações</th>
+            <% } %>
           </tr>
         </thead>
         <tbody>
           <% if (livros.length === 0) { %>
-            <tr><td colspan="6" style="text-align:center; color:#999;">Nenhum livro.</td></tr>
+            <tr>
+              <td colspan="<%= usuarioLogado.tipo === 'admin' ? 6 : 5 %>" style="text-align:center; color:#999; padding:25px;">
+                Nenhum livro cadastrado.
+              </td>
+            </tr>
           <% } else { %>
             <% livros.forEach(l => { %>
               <tr>
-                <td><%= l.id %></td>
+                <td><strong>#<%= l.id %></strong></td>
                 <td><%= l.titulo %></td>
                 <td><%= l.autor %></td>
                 <td><%= l.ano || '—' %></td>
-                <td><strong style="color: <%= l.exemplares > 0 ? '#27ae60' : '#e74c3c' %>;"><%= l.exemplares %></strong></td>
                 <td>
-                  <a href="/livros/editar/<%= l.id %>" class="btn btn-edit">Editar</a>
-                  <form method="POST" action="/livros/excluir/<%= l.id %>" style="display:inline;">
-                    <button type="submit" class="btn btn-delete" onclick="return confirm('Excluir?')">Excluir</button>
-                  </form>
+                  <strong style="color: <%= l.exemplares > 0 ? '#27ae60' : '#e74c3c' %>;">
+                    <%= l.exemplares %> disponível(is)
+                  </strong>
                 </td>
+                <% if (usuarioLogado.tipo === 'admin') { %>
+                  <td>
+                    <a href="/livros/editar/<%= l.id %>" class="btn btn-edit">Editar</a>
+                    <form method="POST" action="/livros/excluir/<%= l.id %>" style="display:inline;">
+                      <button type="submit" class="btn btn-delete" onclick="return confirm('Excluir livro?')">
+                        Excluir
+                      </button>
+                    </form>
+                  </td>
+                <% } %>
               </tr>
             <% }) %>
           <% } %>
@@ -48,7 +66,7 @@
     </div>
   </div>
 
-  <!-- Seta de voltar -->
-  <a href="/dashboard" class="back-arrow" title="Voltar"></a>
+  <!-- Seta fixa no canto inferior esquerdo (sem texto) -->
+  <a href="/dashboard" class="back-arrow" title="Voltar ao Dashboard"></a>
 </body>
 </html>
