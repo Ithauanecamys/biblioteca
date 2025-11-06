@@ -169,6 +169,18 @@ body {
   text-decoration: none;
 }
 
+/* SETA SIMPLES (APENAS ÍCONE) */
+.back-arrow::before {
+  content: "←"; /* Seta para a esquerda */
+}
+
+/* Efeito hover */
+.back-arrow:hover {
+  background: #5a6fd8;
+  transform: scale(1.12);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
 /* ÍCONE DE SETA SIMPLES (SEM TEXTO) */
 .back-arrow::before {
   content: "Left Arrow";
