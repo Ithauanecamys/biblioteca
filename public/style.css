@@ -183,7 +183,7 @@ body {
 
 /* ÍCONE DE SETA SIMPLES (SEM TEXTO) */
 .back-arrow::before {
-  content: "Left Arrow";
+  content: "←";
 }
 
 /* Efeito hover */
