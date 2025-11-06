@@ -53,7 +53,7 @@ async function initDB() {
     if (admin.rows.length === 0) {
       await client.query(
         'INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)',
-        ['Admin', 'admin@biblio.com', '123', 'admin']
+        ['Admin', 'admin@biblio.com', '12345', 'admin']
       );
       console.log('Admin criado: admin@biblio.com / 123');
     }
