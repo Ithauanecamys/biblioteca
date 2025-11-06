@@ -163,9 +163,14 @@ body {
   text-decoration: none;
 }
 
-/* SETA BÁSICA (APENAS O SÍMBOLO) */
+/* SETA BÁSICA */
 .back-arrow::before {
   content: "←";
+}
+
+/* ================== REMOVER TODAS AS BORDAS ARREDONDADAS ================== */
+input, button, .card, .btn, .nav-btn, .table, .table th, .table td {
+  border-radius: 0 !important;
 }
 
 /* ================== RESPONSIVO ================== */
