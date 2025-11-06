@@ -11,7 +11,7 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Variável global para usuário logado (simulação de sessão)
+// Variável global para usuário logado
 let usuarioLogado = null;
 
 // === INICIAR BANCO ===
@@ -33,24 +33,21 @@ async function initDB() {
         id SERIAL PRIMARY KEY,
         titulo VARCHAR(200) NOT NULL,
         autor VARCHAR(100) NOT NULL,
-        ano INTEGER
+        ano INTEGER,
+        exemplares INTEGER DEFAULT 1
       );
 
       CREATE TABLE IF NOT EXISTS emprestimos (
         id SERIAL PRIMARY KEY,
         usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
         livro_id INTEGER REFERENCES livros(id) ON DELETE CASCADE,
-        data_emprestimo DATE DEFAULT CURRENT_DATE
+        data_emprestimo DATE DEFAULT CURRENT_DATE,
+        data_devolucao DATE,
+        data_devolucao_prevista DATE
       );
     `);
 
-    await client.query(`
-      ALTER TABLE livros ADD COLUMN IF NOT EXISTS exemplares INTEGER DEFAULT 1;
-      ALTER TABLE emprestimos ADD COLUMN IF NOT EXISTS data_devolucao DATE;
-      ALTER TABLE emprestimos ADD COLUMN IF NOT EXISTS data_devolucao_prevista DATE;
-    `);
-
-    console.log('Tabelas e colunas verificadas/criadas com sucesso.');
+    console.log('Tabelas criadas/verficadas.');
 
     const admin = await client.query('SELECT * FROM usuarios WHERE email = $1', ['admin@biblio.com']);
     if (admin.rows.length === 0) {
@@ -68,7 +65,7 @@ async function initDB() {
 }
 initDB();
 
-// === MIDDLEWARE: VERIFICAR LOGIN ===
+// === MIDDLEWARES ===
 function verificarLogin(req, res, next) {
   if (!usuarioLogado) {
     return res.redirect('/');
@@ -76,7 +73,6 @@ function verificarLogin(req, res, next) {
   next();
 }
 
-// === MIDDLEWARE: VERIFICAR ADMIN ===
 function verificarAdmin(req, res, next) {
   if (!usuarioLogado || usuarioLogado.tipo !== 'admin') {
     return res.status(403).send('Acesso negado. Apenas administradores.');
@@ -153,10 +149,11 @@ app.post('/usuarios/excluir/:id', verificarAdmin, async (req, res) => {
 
 // === LIVROS ===
 app.get('/livros', verificarLogin, async (req, res) => {
-  const result = await db.query('SELECT * FROM livros');
+  const result = await db.query('SELECT * FROM livros ORDER BY id');
   res.render('livros/lista', { livros: result.rows, usuarioLogado });
 });
 
+// SÓ ADMIN: CRUD de livros
 app.get('/livros/novo', verificarAdmin, (req, res) => {
   res.render('livros/form', { livro: {}, action: '/livros', usuarioLogado });
 });
