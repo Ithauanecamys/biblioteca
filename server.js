@@ -53,9 +53,9 @@ async function initDB() {
     if (admin.rows.length === 0) {
       await client.query(
         'INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)',
-        ['Admin', 'admin@biblio.com', '12345', 'admin']
+        ['Adm', 'adm@biblio.com', '123', 'adm']
       );
-      console.log('Admin criado: admin@biblio.com / 123');
+      console.log('Adm criado: adm@biblio.com / 123');
     }
   } catch (err) {
     console.error('Erro ao configurar banco:', err);
