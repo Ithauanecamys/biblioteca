@@ -21,5 +21,5 @@ pool.on('error', (err) => {
   console.error('Erro inesperado no banco:', err.stack);
 });
 
-// Exporta o pool para uso em server.js
+// Exporta o pool diretamente (permite usar db.query e db.connect)
 module.exports = pool;
