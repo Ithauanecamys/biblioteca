@@ -1,15 +1,13 @@
-// db.js
+// db.js (COPIE E COLE EXATAMENTE ASSIM)
 const { Pool } = require('pg');
 
-// Configuração para Render E local
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL
-    ? { rejectUnauthorized: false }  // Render: SSL obrigatório
-    : false                          // Local: sem SSL
+    ? { rejectUnauthorized: false }
+    : false
 });
 
-// Logs de conexão
 pool.on('connect', () => {
   console.log('Conectado ao PostgreSQL');
 });
