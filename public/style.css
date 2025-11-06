@@ -22,8 +22,7 @@ body {
 .header {
   background: white;
   padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   margin-bottom: 20px;
   text-align: center;
 }
@@ -50,31 +49,24 @@ body {
 
 .nav-btn {
   padding: 14px 28px;
-  border: none;
-  border-radius: 50px;
+  border: 1px solid #ccc;
+  background: white;
   font-weight: 600;
   text-decoration: none;
-  color: white;
+  color: #333;
   font-size: 16px;
-  transition: all 0.3s ease;
   min-width: 140px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  text-align: center;
 }
 
-.nav-btn.usuarios { background: #3498db; }
-.nav-btn.livros { background: #9b59b6; }
-.nav-btn.emprestimos { background: #e74c3c; }
-
-.nav-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
+.nav-btn.usuarios { color: #3498db; }
+.nav-btn.livros { color: #9b59b6; }
+.nav-btn.emprestimos { color: #e74c3c; }
 
 /* ================== CARDS ================== */
 .card {
   background: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   padding: 25px;
   margin-bottom: 20px;
 }
@@ -90,32 +82,27 @@ body {
 /* ================== BOTÕES DE AÇÃO ================== */
 .btn {
   padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: white;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
   font-size: 14px;
-  transition: all 0.3s ease;
   margin: 5px 2px;
 }
 
-.btn-add { background: #27ae60; color: white; margin-bottom: 15px; padding: 10px 20px; }
-.btn-edit { background: #3498db; color: white; }
-.btn-delete { background: #e74c3c; color: white; }
-.btn-return { background: #f39c12; color: white; }
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
+.btn-add { background: #27ae60; color: white; margin-bottom: 15px; padding: 10px 20px; border: none; }
+.btn-edit { background: #3498db; color: white; border: none; }
+.btn-delete { background: #e74c3c; color: white; border: none; }
+.btn-return { background: #f39c12; color: white; border: none; }
 
 /* ================== TABELAS ================== */
 .table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
+  border: 1px solid #ddd;
 }
 
 .table th {
@@ -124,22 +111,31 @@ body {
   text-align: left;
   font-weight: 600;
   color: #333;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid #ddd;
+  border-right: 1px solid #ddd;
+}
+
+.table th:last-child {
+  border-right: none;
 }
 
 .table td {
   padding: 12px 14px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #ddd;
 }
 
-.table tr:hover {
-  background: #f8f9fa;
+.table td:last-child {
+  border-right: none;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
 }
 
 /* ================== STATUS ================== */
 .status {
   padding: 6px 12px;
-  border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -148,7 +144,7 @@ body {
 .status.pendente { background: #e74c3c; color: white; }
 .status.devolvido { background: #27ae60; color: white; }
 
-/* ================== SETA FIXA NO CANTO INFERIOR ESQUERDO (SÓ ÍCONE) ================== */
+/* ================== SETA FIXA NO CANTO INFERIOR ESQUERDO ================== */
 .back-arrow {
   position: fixed;
   bottom: 20px;
@@ -157,40 +153,19 @@ body {
   color: white;
   width: 50px;
   height: 50px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   cursor: pointer;
   z-index: 1000;
-  transition: all 0.3s ease;
   text-decoration: none;
 }
 
-/* SETA SIMPLES (APENAS ÍCONE) */
+/* SETA SIMPLES */
 .back-arrow::before {
-  content: "←"; /* Seta para a esquerda */
-}
-
-/* Efeito hover */
-.back-arrow:hover {
-  background: #5a6fd8;
-  transform: scale(1.12);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-}
-
-/* ÍCONE DE SETA SIMPLES (SEM TEXTO) */
-.back-arrow::before {
-  content: "←";
-}
-
-/* Efeito hover */
-.back-arrow:hover {
-  background: #5a6fd8;
-  transform: scale(1.12);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  content: "Left Arrow";
 }
 
 /* ================== RESPONSIVO ================== */
