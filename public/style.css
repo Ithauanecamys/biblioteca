@@ -148,7 +148,7 @@ body {
 .status.pendente { background: #e74c3c; color: white; }
 .status.devolvido { background: #27ae60; color: white; }
 
-/* ================== SETA FIXA NO CANTO INFERIOR ESQUERDO (SEM TEXTO) ================== */
+/* ================== SETA FIXA NO CANTO INFERIOR ESQUERDO (SÓ ÍCONE) ================== */
 .back-arrow {
   position: fixed;
   bottom: 20px;
@@ -169,7 +169,7 @@ body {
   text-decoration: none;
 }
 
-/* Ícone de seta (sem texto) */
+/* ÍCONE DE SETA SIMPLES (SEM TEXTO) */
 .back-arrow::before {
   content: "Left Arrow";
 }
