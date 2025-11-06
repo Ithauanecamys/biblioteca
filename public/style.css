@@ -163,9 +163,9 @@ body {
   text-decoration: none;
 }
 
-/* APENAS A SETA (SEM TEXTO) */
+/* SETA BÁSICA (APENAS O SÍMBOLO) */
 .back-arrow::before {
-  content: "Left Arrow";
+  content: "←";
 }
 
 /* ================== RESPONSIVO ================== */
