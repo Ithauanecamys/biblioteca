@@ -11,7 +11,7 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Variável global para usuário logado
+// Usuário logado
 let usuarioLogado = null;
 
 // === INICIAR BANCO ===
@@ -55,21 +55,19 @@ async function initDB() {
         'INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)',
         ['Admin', 'admin@biblio.com', '123', 'admin']
       );
-      console.log('✅ Adm criado: admin@biblio.com / 123');
+      console.log('ADMIN CRIADO: admin@biblio.com / 123');
     } else {
-      console.log('Usuário admin já existe.');
+      console.log('Admin já existe.');
     }
 
   } catch (err) {
-    console.error('Erro ao configurar banco:', err);
+    console.error('Erro ao iniciar banco:', err.message);
   }
 }
 
 // === MIDDLEWARES ===
 function verificarLogin(req, res, next) {
-  if (!usuarioLogado) {
-    return res.redirect('/');
-  }
+  if (!usuarioLogado) return res.redirect('/');
   next();
 }
 
@@ -82,27 +80,31 @@ function verificarAdmin(req, res, next) {
 
 // === ROTAS ===
 
-// Página de login
+// Login
 app.get('/', (req, res) => {
   res.render('login', { erro: null });
 });
 
-// Processar login
 app.post('/login', async (req, res) => {
   const { email, senha } = req.body;
+  console.log('Tentativa de login:', { email, senha });
 
   try {
-    const result = await db.query(
-      'SELECT * FROM usuarios WHERE email = $1 AND senha = $2',
-      [email, senha]
-    );
+    const result = await db.query('SELECT * FROM usuarios WHERE email = $1', [email]);
 
     if (result.rows.length > 0) {
-      usuarioLogado = result.rows[0];
-      console.log(`Login: ${usuarioLogado.nome} (${usuarioLogado.tipo})`);
-      res.render('dashboard', { usuario: usuarioLogado });
+      const usuario = result.rows[0];
+      if (usuario.senha === senha) {
+        usuarioLogado = usuario;
+        console.log('LOGIN BEM-SUCEDIDO!');
+        return res.render('dashboard', { usuario: usuarioLogado });
+      } else {
+        console.log('SENHA INCORRETA');
+        return res.render('login', { erro: 'Senha incorreta' });
+      }
     } else {
-      res.render('login', { erro: 'Email ou senha inválidos' });
+      console.log('USUÁRIO NÃO ENCONTRADO');
+      return res.render('login', { erro: 'Email não encontrado' });
     }
   } catch (err) {
     console.error('Erro no login:', err);
@@ -130,17 +132,13 @@ app.get('/usuarios', verificarLogin, async (req, res) => {
   }
 });
 
-// CRUD Usuários (Admin)
 app.get('/usuarios/novo', verificarAdmin, (req, res) => {
   res.render('usuarios/form', { usuario: {}, action: '/usuarios', usuarioLogado });
 });
 
 app.post('/usuarios', verificarAdmin, async (req, res) => {
   const { nome, email, senha, tipo } = req.body;
-  await db.query(
-    'INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)',
-    [nome, email, senha, tipo || 'usuario']
-  );
+  await db.query('INSERT INTO usuarios (nome, email, senha, tipo) VALUES ($1, $2, $3, $4)', [nome, email, senha, tipo || 'usuario']);
   res.redirect('/usuarios');
 });
 
@@ -151,10 +149,7 @@ app.get('/usuarios/editar/:id', verificarAdmin, async (req, res) => {
 
 app.post('/usuarios/:id', verificarAdmin, async (req, res) => {
   const { nome, email, senha, tipo } = req.body;
-  await db.query(
-    'UPDATE usuarios SET nome=$1, email=$2, senha=$3, tipo=$4 WHERE id=$5',
-    [nome, email, senha, tipo, req.params.id]
-  );
+  await db.query('UPDATE usuarios SET nome=$1, email=$2, senha=$3, tipo=$4 WHERE id=$5', [nome, email, senha, tipo, req.params.id]);
   res.redirect('/usuarios');
 });
 
@@ -169,17 +164,13 @@ app.get('/livros', verificarLogin, async (req, res) => {
   res.render('livros/lista', { livros: result.rows, usuarioLogado });
 });
 
-// CRUD Livros (Admin)
 app.get('/livros/novo', verificarAdmin, (req, res) => {
   res.render('livros/form', { livro: {}, action: '/livros', usuarioLogado });
 });
 
 app.post('/livros', verificarAdmin, async (req, res) => {
   const { titulo, autor, ano, exemplares } = req.body;
-  await db.query(
-    'INSERT INTO livros (titulo, autor, ano, exemplares) VALUES ($1, $2, $3, $4)',
-    [titulo, autor, ano || null, exemplares || 1]
-  );
+  await db.query('INSERT INTO livros (titulo, autor, ano, exemplares) VALUES ($1, $2, $3, $4)', [titulo, autor, ano || null, exemplares || 1]);
   res.redirect('/livros');
 });
 
@@ -190,10 +181,7 @@ app.get('/livros/editar/:id', verificarAdmin, async (req, res) => {
 
 app.post('/livros/:id', verificarAdmin, async (req, res) => {
   const { titulo, autor, ano, exemplares } = req.body;
-  await db.query(
-    'UPDATE livros SET titulo=$1, autor=$2, ano=$3, exemplares=$4 WHERE id=$5',
-    [titulo, autor, ano, exemplares, req.params.id]
-  );
+  await db.query('UPDATE livros SET titulo=$1, autor=$2, ano=$3, exemplares=$4 WHERE id=$5', [titulo, autor, ano, exemplares, req.params.id]);
   res.redirect('/livros');
 });
 
@@ -288,7 +276,7 @@ app.post('/emprestimos/excluir/:id', verificarAdmin, async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, async () => {
-  await initDB(); // Garante que o banco e o admin existam
+  await initDB();
   console.log(`\nServidor rodando em http://localhost:${PORT}`);
-  console.log(`Login Admin → Email: admin@biblio.com | Senha: 123\n`);
+  console.log(`Login Admin: admin@biblio.com / 123\n`);
 });
